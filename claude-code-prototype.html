@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code — Redesigned Prototype</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f3ef;--panel:#ffffff;--border:#e5e2dc;
+  --accent:#c94b2a;--accent-h:#a83e24;
+  --text:#1a1a1a;--muted:#6b6b6b;--faint:#aaa;
+  --mono:'Courier New',monospace;--r:12px;
+}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow:hidden}
+button{cursor:pointer;font-family:inherit;font-size:14px}
+
+.screen{position:fixed;inset:0;opacity:0;pointer-events:none;
+  transition:opacity 300ms ease;overflow:hidden;display:flex;flex-direction:column}
+.screen.active{opacity:1;pointer-events:all}
+@media(prefers-reduced-motion:reduce){
+  .screen{transition:none}
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
+
+/* ══ SCREEN 1 ══════════════════════════════════════════════ */
+#s1{align-items:center;justify-content:center;background:var(--bg)}
+.bg-blur{position:absolute;inset:0;filter:blur(5px);pointer-events:none;opacity:.5;display:flex}
+.bg-side{width:240px;background:#fff;border-right:1px solid var(--border);padding:16px;flex-shrink:0}
+.bg-logo{font-size:15px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.bg-logo-mark{width:22px;height:22px;background:#c94b2a;border-radius:6px}
+.bg-file{height:24px;background:#f0ede8;border-radius:5px;margin-bottom:8px}
+.bg-main{flex:1;padding:20px;display:flex;flex-direction:column;gap:10px}
+.bg-block{background:#fff;border:1px solid var(--border);border-radius:12px}
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.28);backdrop-filter:blur(2px);
+  display:flex;align-items:center;justify-content:center;z-index:10}
+.modal{background:#fff;border-radius:16px;width:360px;padding:28px 28px 24px;
+  box-shadow:0 24px 64px rgba(0,0,0,.16)}
+.modal h2{font-size:18px;font-weight:700;line-height:1.4;margin-bottom:6px}
+.modal .sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.lvl-cards{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.lvl{border:1.5px solid var(--border);border-radius:10px;padding:13px 15px;cursor:pointer;
+  position:relative;background:#fff;transition:border-color 180ms,background 180ms}
+.lvl:hover{border-color:#c9a99a;background:#fdf9f7}
+.lvl.sel{border-color:var(--accent);background:#fdf5f3}
+.lvl-name{font-weight:700;font-size:14px;margin-bottom:2px}
+.lvl-desc{font-size:12px;color:var(--muted)}
+.lvl-check{position:absolute;top:11px;right:11px;width:19px;height:19px;background:var(--accent);
+  border-radius:50%;display:none;align-items:center;justify-content:center}
+.lvl.sel .lvl-check{display:flex}
+.lvl-check::after{content:'';width:4px;height:7px;border:2px solid #fff;
+  border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);display:block}
+.cta{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;
+  border-radius:8px;font-weight:600;font-size:14px;transition:background 180ms}
+.cta:disabled{background:#d9d5cf;color:#aaa;cursor:not-allowed}
+.cta:not(:disabled):hover{background:var(--accent-h)}
+
+/* ══ TOAST ════════════════════════════════════════════════ */
+.toast{position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:#1a1a1a;color:#fff;padding:11px 20px;border-radius:100px;
+  font-size:13px;opacity:0;pointer-events:none;
+  transition:opacity 350ms,transform 350ms cubic-bezier(.34,1.56,.64,1);
+  z-index:9999;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ══ SHARED TOP BAR ═══════════════════════════════════════ */
+.top-bar{padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;flex-shrink:0;min-height:52px;gap:0}
+.bar-title{font-size:14px;font-weight:700;color:var(--text)}
+.bar-sub{font-size:12px;color:var(--muted);margin-left:10px}
+/* breadcrumb */
+.bc-step{display:flex;align-items:center;gap:7px}
+.bc-conn{color:var(--muted);font-size:12px;margin:0 10px}
+.bc-icon{width:26px;height:26px;border-radius:50%;background:#f0ede8;
+  display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;
+  transition:background 400ms,color 400ms}
+.bc-step.act .bc-icon{background:var(--accent);color:#fff}
+.bc-step.done .bc-icon{background:#e6f4ea;color:#2d7a3a}
+.bc-info{display:flex;flex-direction:column}
+.bc-name{font-size:12px;font-weight:600;color:var(--muted);transition:color 400ms}
+.bc-step.act .bc-name{color:var(--text)}
+.bc-time{font-size:10px;color:var(--faint)}
+
+/* ══ SHARED 3-PANEL ═══════════════════════════════════════ */
+.panels{display:flex;flex:1;overflow:hidden;min-height:0}
+.p-left{flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.p-center{flex:1;background:#1e1e1e;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #333}
+.p-content{flex:1;background:var(--panel);display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
+.p-right{flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column}
+.p-head{padding:11px 15px 9px;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--muted);border-bottom:1px solid #f0ede8;flex-shrink:0}
+.p-center .p-head{background:#252526;border-bottom-color:#3c3c3c;color:#777}
+
+/* ══ SHARED LOG FORMAT ════════════════════════════════════ */
+.log-list{flex:1;overflow-y:auto;padding:12px 15px;display:flex;flex-direction:column;gap:0}
+.log-user{background:#f0ede8;border-radius:8px;padding:8px 11px;
+  font-size:13px;font-weight:600;color:var(--text);
+  margin:8px 0 5px;line-height:1.4;animation:lfade 280ms ease}
+.log-user:first-child{margin-top:0}
+.log-item{display:flex;gap:9px;padding:3px 0;font-size:13px;
+  color:var(--text);line-height:1.55;animation:lfade 280ms ease}
+.log-bull{color:var(--muted);flex-shrink:0;line-height:1.55}
+.log-body{flex:1}
+.log-verb{font-weight:700}
+.log-file{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.log-loading{display:flex;gap:7px;padding:4px 0;font-size:13px;color:var(--accent);animation:lfade 280ms ease}
+.lcursor{display:inline-block;animation:lcblink 1s step-end infinite}
+@keyframes lfade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lcblink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ══ SHARED INPUT ════════════════════════════════════════ */
+.p-input{padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0}
+.p-input-inner{display:flex;align-items:center;border:1px solid var(--border);
+  border-radius:10px;background:#fff;padding:5px 5px 5px 13px;gap:6px}
+.p-inp{flex:1;border:none;background:transparent;padding:4px 0;
+  font-family:inherit;font-size:13px;color:var(--text);outline:none}
+.p-inp::placeholder{color:var(--faint)}
+.p-send{width:30px;height:30px;background:#f0ede8;border:none;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:var(--muted);transition:all 140ms;flex-shrink:0}
+.p-send:hover{background:var(--accent);color:#fff}
+
+/* ══ SCREEN 2 — VOICE PANEL ══════════════════════════════ */
+.voice-panel{flex-shrink:0;padding:14px 15px;display:flex;flex-direction:column;gap:12px}
+.voice-instr{font-size:13px;color:var(--text);text-align:center;line-height:1.6}
+.mic-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0}
+.mic{width:64px;height:64px;background:var(--accent);border:none;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;position:relative;
+  transition:background 180ms,transform 180ms;flex-shrink:0}
+.mic:hover{background:var(--accent-h);transform:scale(1.04)}
+.mic svg{width:24px;height:24px;fill:#fff;position:relative;z-index:1}
+.mic.rec::before,.mic.rec::after{content:'';position:absolute;border-radius:50%;
+  border:2px solid var(--accent);opacity:0;animation:pring 1.5s cubic-bezier(.215,.61,.355,1) infinite}
+.mic.rec::after{animation-delay:.6s}
+@keyframes pring{0%{width:64px;height:64px;opacity:.7}100%{width:100px;height:100px;opacity:0}}
+.wave{display:flex;align-items:center;gap:4px;height:36px;opacity:0;transition:opacity 280ms}
+.wave.on{opacity:1}
+.wbar{width:4px;background:var(--accent);border-radius:2px;height:6px;transition:height 180ms ease;opacity:.75}
+.rec-timer{font-family:var(--mono);font-size:12px;color:var(--muted);display:none;align-items:center;gap:6px}
+.rdot{width:7px;height:7px;background:#e74c3c;border-radius:50%;animation:rblink 1s ease-in-out infinite;flex-shrink:0}
+@keyframes rblink{0%,100%{opacity:1}50%{opacity:.2}}
+.silence{background:#fff;border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.08);display:none}
+.silence.on{display:block}
+.silence p{margin-bottom:9px;font-weight:500;color:var(--text)}
+.sil-btns{display:flex;gap:7px}
+.btn-ghost{padding:5px 11px;border:1px solid var(--border);border-radius:6px;
+  background:transparent;font-size:11px;color:var(--text);transition:all 140ms}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 11px;background:var(--accent);border:none;border-radius:6px;
+  font-size:11px;color:#fff;font-weight:600;transition:background 140ms}
+.btn-sm:hover{background:var(--accent-h)}
+.divider{border:none;border-top:1px solid #f0ede8}
+.txt-toggle{font-size:11px;color:var(--muted);text-decoration:underline;
+  cursor:pointer;text-align:center;display:block;background:none;border:none;width:100%;padding:2px 0}
+.txt-area{display:none}
+.txt-area.on{display:block}
+.txt-area textarea{width:100%;border:1px solid var(--border);border-radius:8px;
+  padding:9px 11px;font-family:inherit;font-size:12px;resize:vertical;
+  min-height:72px;outline:none;color:var(--text);margin-bottom:8px}
+.txt-area textarea:focus{border-color:var(--accent)}
+.btn-done-full{width:100%;padding:9px;background:var(--accent);color:#fff;border:none;
+  border-radius:8px;font-size:12px;font-weight:600;transition:background 140ms}
+.btn-done-full:hover{background:var(--accent-h)}
+.ai-hint{font-size:12px;color:var(--faint);text-align:center;margin:16px 0;line-height:1.7}
+/* Compact voice row inside AI 어시스턴트 left panel */
+.vc-wrap{padding:10px 15px 8px;flex-shrink:0}
+.vc-row{display:flex;align-items:center;gap:10px}
+.mic-sm{width:34px!important;height:34px!important;min-width:34px;flex-shrink:0}
+.vc-info{flex:1;min-width:0}
+.vc-title{font-size:11px;font-weight:700;color:var(--text);line-height:1.3}
+.vc-sub{font-size:10px;color:var(--muted);line-height:1.3}
+.wave-sm{flex:1;display:none;height:24px;align-items:center;gap:2px;margin:0}
+.wave-sm.on{display:flex}
+.wave-sm .wbar{width:2.5px;height:3px;background:var(--accent);border-radius:2px}
+.vc-timer{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;display:none}
+.vc-timer.on{display:block}
+
+/* ══ SCREEN 2 — CONTENT PANEL ════════════════════════════ */
+.content-area{flex:1;overflow-y:auto;padding:18px}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:12px;color:var(--faint);text-align:center;padding:20px}
+.empty-icon{font-size:32px;opacity:.4}
+.empty-state p{font-size:12px;line-height:1.7;max-width:240px}
+.struct-block{display:none}
+.struct-block.on{display:block}
+.struct-label{font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--muted);margin-bottom:12px}
+.srow{display:flex;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f0ede8;gap:10px}
+.srow:last-child{border-bottom:none}
+.slabel{font-size:11px;color:var(--muted);width:58px;flex-shrink:0;padding-top:1px}
+.sval{flex:1;font-size:13px;color:var(--text)}
+.sval input{width:100%;border:1px solid var(--accent);border-radius:4px;
+  padding:3px 6px;font-family:inherit;font-size:13px;color:var(--text);outline:none}
+.sedit{font-size:11px;color:var(--muted);border:1px solid var(--border);
+  border-radius:4px;padding:2px 8px;background:transparent;flex-shrink:0;transition:all 140ms}
+.sedit:hover{border-color:var(--accent);color:var(--accent)}
+.ref-block{display:none;margin-top:20px}
+.ref-block.on{display:block}
+.fw-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.fw-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.fw-box{background:#f0ede8;border:1px solid var(--border);border-radius:8px;
+  padding:6px 10px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.fw-i{width:14px;height:14px;background:var(--muted);border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;font-size:8px;
+  color:#fff;cursor:default;position:relative;font-style:normal;flex-shrink:0}
+.fw-tip{position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+  background:#1a1a1a;color:#fff;font-size:11px;padding:5px 9px;border-radius:6px;
+  white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 160ms;z-index:100}
+.fw-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:#1a1a1a}
+.fw-i:hover .fw-tip{opacity:1}
+.fw-arr{color:var(--muted);font-size:12px}
+.cta-row{border-top:1px solid #f0ede8;padding-top:16px}
+.cta-full{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;
+  border-radius:8px;font-weight:600;font-size:14px;transition:background 180ms}
+.cta-full:hover{background:var(--accent-h)}
+
+/* ══ SCREEN 2 — REF GRID (event page variations) ══════════ */
+.ref-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.ref-grid-item{border:1.5px solid var(--border);border-radius:10px;overflow:hidden;
+  cursor:pointer;transition:all 180ms}
+.ref-grid-item:hover{border-color:#c9a99a}
+.ref-grid-item.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(201,75,42,.15)}
+.ref-mock{width:100%;height:190px;overflow:hidden;position:relative;flex-shrink:0}
+
+/* ── Shared event mock base ── */
+.rev{width:100%;height:100%;display:flex;flex-direction:column;
+  align-items:center;padding:8px 7px 7px;gap:0;position:relative}
+
+/* ── Var A: 민트/라벤더 (원본 스타일) ── */
+.rev-a{background:linear-gradient(160deg,#c2f0e8 0%,#cbbdf8 50%,#e8c4f8 75%,#b4e8f8 100%)}
+/* ── Var B: 코랄/피치 (웜 컬러) ── */
+.rev-b{background:linear-gradient(160deg,#ffd6c0 0%,#f8b4cc 50%,#f0c8f0 75%,#ffc8a8 100%)}
+/* ── Var C: 딥 네이비/일렉트릭 (다크 버전) ── */
+.rev-c{background:linear-gradient(160deg,#0e1a38 0%,#1a0e38 50%,#0e2240 100%)}
+
+.rev-date{font-size:6px;font-weight:500;align-self:flex-end;margin-bottom:2px}
+.rev-date-ab{color:#5a5a7a}  .rev-date-c{color:rgba(255,255,255,.5)}
+
+.rev-off-badge{font-size:7.5px;font-weight:800;padding:2px 8px;border-radius:100px;
+  align-self:flex-start;margin-bottom:2px;letter-spacing:-.2px}
+.rev-off-a{background:#c4aef8;color:#2a1a5a}
+.rev-off-b{background:#f8a0b8;color:#5a0020}
+.rev-off-c{background:#3a4fff;color:#c0d0ff}
+
+.rev-title{font-weight:900;text-align:center;line-height:1.0;letter-spacing:-1px;margin-bottom:1px}
+.rev-title-ab{font-size:26px;color:#111128}
+.rev-title-c{font-size:26px;color:#ffffff}
+
+.rev-badges{display:flex;gap:4px;align-self:flex-end;margin-bottom:4px}
+.rev-b-pill{font-size:5.5px;font-weight:700;padding:2px 5px;border-radius:100px}
+.rev-wk-a{background:#7dd8ec;color:#fff}  .rev-wk-b{background:#f09060;color:#fff}  .rev-wk-c{background:#00d4ff;color:#001a2e}
+.rev-sale-a{background:#e8b0f4;color:#5a1a7a}.rev-sale-b{background:#f87090;color:#fff}.rev-sale-c{background:#ff40a0;color:#fff}
+
+.rev-desc{font-size:6px;line-height:1.4;text-align:center;margin-bottom:4px}
+.rev-desc-ab{color:#444460}  .rev-desc-c{color:rgba(255,255,255,.55)}
+
+/* coupon card */
+.rev-coupon{border-radius:6px;width:100%;padding:5px 8px;text-align:center;
+  margin-bottom:4px;position:relative}
+.rev-coupon-a{background:linear-gradient(135deg,#96b8f8 0%,#b0a0f8 50%,#c89af8 100%)}
+.rev-coupon-b{background:linear-gradient(135deg,#f8a070 0%,#f870a0 50%,#e050d0 100%)}
+.rev-coupon-c{background:linear-gradient(135deg,#1050ff 0%,#5030d0 50%,#8010c0 100%)}
+.rev-coupon::before,.rev-coupon::after{content:'';position:absolute;
+  width:8px;height:8px;border-radius:50%;top:50%;transform:translateY(-50%)}
+.rev-coupon-a::before,.rev-coupon-a::after{background:linear-gradient(160deg,#c2f0e8,#cbbdf8)}
+.rev-coupon-b::before,.rev-coupon-b::after{background:linear-gradient(160deg,#ffd6c0,#f8b4cc)}
+.rev-coupon-c::before,.rev-coupon-c::after{background:linear-gradient(160deg,#0e1a38,#1a0e38)}
+.rev-coupon::before{left:-4px}  .rev-coupon::after{right:-4px}
+.rev-cpn-label{font-size:5.5px;color:rgba(255,255,255,.85);margin-bottom:1px}
+.rev-cpn-val{font-size:14px;font-weight:900;color:#fff;line-height:1}
+.rev-cpn-code{font-size:5px;color:rgba(255,255,255,.65);margin-top:2px;letter-spacing:.08em}
+
+/* CTA */
+.rev-cta{font-size:6.5px;font-weight:700;padding:5px 0;border-radius:4px;
+  width:100%;text-align:center}
+.rev-cta-a{background:#111128;color:#fff}
+.rev-cta-b{background:#2a0010;color:#fff}
+.rev-cta-c{background:#00d4ff;color:#001a2e}
+
+.rev-star{position:absolute;font-size:7px;opacity:.5;pointer-events:none}
+
+.ref-grid-info{padding:7px 10px;border-top:1px solid #f0ede8}
+.ref-grid-name{font-size:11px;font-weight:600;color:var(--text)}
+.ref-grid-desc{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* ══ SCREEN 3 — CODE VIEW ═════════════════════════════════ */
+.code-view{flex:1;overflow:auto;padding:14px 16px}
+.code-view pre{font-family:var(--mono);font-size:12.5px;line-height:1.8;color:#d4d4d4}
+.cl{display:flex;align-items:center;border-radius:3px;transition:background 200ms}
+.cl.hl{background:rgba(255,200,0,.18)}
+.lnum{width:30px;text-align:right;color:#555;margin-right:14px;user-select:none;font-size:11px;flex-shrink:0}
+.tk-tag{color:#569cd6}.tk-attr{color:#9cdcfe}.tk-val{color:#ce9178}
+.tk-comment{color:#6a9955}.tk-doc{color:#808080}
+
+/* ══ SCREEN 3 — TASK LIST ═════════════════════════════════ */
+.task-list{padding:8px 0;flex-shrink:0}
+.task{display:flex;align-items:flex-start;gap:9px;padding:8px 15px}
+.t-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px}
+.t-done{background:#e6f4ea;color:#2d7a3a}
+.t-run{background:#e8f0fe;color:#1a56db}
+.t-wait{background:#f0f0f0;color:#888}
+.t-name{font-size:12px;color:var(--text);margin-bottom:3px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:500}
+.b-done{background:#e6f4ea;color:#2d7a3a}
+.b-run{background:#e8f0fe;color:#1a56db}
+.b-wait{background:#f0f0f0;color:#888}
+.pdot{width:6px;height:6px;background:#1a56db;border-radius:50%;
+  animation:pdot 1s ease-in-out infinite;flex-shrink:0}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Left panel log sub-section */
+.log-section-divider{border:none;border-top:1px solid var(--border);flex-shrink:0}
+.log-section-head{padding:9px 15px 7px;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--muted);flex-shrink:0}
+
+/* ══ SCREEN 3 — UI PREVIEW (right panel) ═════════════════ */
+.preview-area{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;background:#f0ede8;padding:16px;overflow:hidden}
+.phone-outer{width:200px;background:#e0dcd8;border-radius:24px;overflow:hidden;
+  box-shadow:0 10px 40px rgba(0,0,0,.25),0 0 0 2px rgba(0,0,0,.06);flex-shrink:0}
+.phone-notch{width:52px;height:5px;background:rgba(0,0,0,.12);
+  border-radius:3px;margin:8px auto 4px}
+/* Phone screen = gradient BG matching reference image */
+.phone-screen{
+  background:linear-gradient(160deg,#b8eee4 0%,#c8b8f8 45%,#e4c0f8 70%,#a8d8f8 100%);
+  height:435px;padding:0;display:flex;flex-direction:column;align-items:stretch;
+  overflow:hidden;position:relative}
+
+/* Event page inside phone */
+.mep-wrap{padding:8px 9px 10px;display:flex;flex-direction:column;
+  align-items:center;gap:0;position:relative;height:100%;box-sizing:border-box}
+.mep-date{font-size:6.5px;color:#445;font-weight:600;align-self:flex-end;margin-bottom:3px}
+.mep-row1{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:2px}
+.mep-off-badge{background:#c8b0f8;color:#2a1060;font-size:8px;font-weight:800;
+  padding:3px 9px;border-radius:100px;letter-spacing:-.3px}
+.mep-smiley{font-size:10px}
+.mep-title{font-size:38px;font-weight:900;color:#0d0d28;line-height:1.0;
+  text-align:center;letter-spacing:-2px;width:100%}
+.mep-row2{display:flex;align-items:center;justify-content:space-between;
+  width:100%;margin-bottom:3px}
+.mep-weekend{background:#7cd4e8;color:#fff;font-size:6px;font-weight:800;
+  padding:2px 7px;border-radius:100px;letter-spacing:.05em}
+.mep-sale{background:#e8b0f4;color:#4a0060;font-size:6px;font-weight:700;
+  padding:2px 7px;border-radius:100px;font-style:italic}
+.mep-desc{font-size:7px;color:#334;line-height:1.5;text-align:center;margin-bottom:5px}
+/* sparkle decorations */
+.mep-spark{position:absolute;font-size:8px;color:#6060a0;opacity:.5;pointer-events:none}
+
+/* Coupon card */
+/* ── Coupon card (no envelope) ── */
+.mep-env-wrap{width:136px;margin:12px auto 10px;position:relative}
+.mep-env-card{
+  width:100%;
+  background:linear-gradient(145deg,#d0f8b0 0%,#7adc5c 38%,#3cc040 72%,#24a030 100%);
+  border-radius:20px;padding:24px 0 26px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 10px 36px rgba(36,150,36,.5),inset 0 1px 0 rgba(255,255,255,.42);
+  position:relative}
+.mep-env-card::after{content:'✦';position:absolute;top:11px;right:15px;
+  font-size:10px;color:rgba(255,255,255,.6)}
+.mep-env-cpn-label{font-size:10px;font-weight:800;color:rgba(10,60,10,.55);
+  letter-spacing:.18em;margin-bottom:2px}
+.mep-env-cpn-val{font-size:46px;font-weight:900;color:#fff;line-height:1;
+  letter-spacing:-2px;text-shadow:0 3px 12px rgba(20,110,20,.35)}
+.mep-env-cpn-unit{font-size:14px;font-weight:800;color:rgba(255,255,255,.88);
+  letter-spacing:.06em;margin-top:-2px}
+
+.mep-badges{display:flex;gap:4px;margin-bottom:5px}
+.mep-b-pill{font-size:6.5px;font-weight:700;padding:2px 7px;border-radius:100px}
+.mep-b-white{background:rgba(255,255,255,.5);color:#333}
+.mep-b-purple{background:#7c5cbf;color:#fff}
+
+/* CTA button — pinned to bottom */
+.mep-spacer{flex:1}
+.mep-cta{background:#0d0d28;color:#fff;font-size:8px;font-weight:700;
+  padding:11px 0;border-radius:6px;border:none;width:100%;text-align:center;
+  margin-bottom:5px;cursor:default;display:flex;align-items:center;
+  justify-content:center;gap:5px}
+.mep-disclaimer{font-size:5.5px;color:#668;text-align:center;line-height:1.4}
+
+/* ── Build-in reveal animation ── */
+.mep-anim{opacity:0}
+@keyframes mepReveal{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+.mep-anim.mep-show{animation:mepReveal 0.55s ease forwards}
+/* Card also floats after revealing */
+@keyframes envFloat{0%,100%{transform:translateY(0)}42%{transform:translateY(-9px)}65%{transform:translateY(-4px)}}
+.mep-env-wrap.mep-anim.mep-show{
+  animation:mepReveal 0.55s ease forwards,envFloat 1.2s ease-in-out 0.65s infinite}
+
+.preview-dim{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.preview-note{font-size:10px;color:var(--faint);text-align:center;line-height:1.5;max-width:150px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ SCREEN 1 ══════════════════ -->
+<div id="s1" class="screen active">
+  <div class="bg-blur">
+    <div class="bg-side">
+      <div class="bg-logo"><div class="bg-logo-mark"></div>Claude Code</div>
+      <div class="bg-file"></div><div class="bg-file" style="width:72%"></div>
+      <div class="bg-file" style="width:85%"></div><div class="bg-file" style="width:60%"></div>
+      <div class="bg-file" style="width:90%;margin-top:14px"></div>
+      <div class="bg-file" style="width:65%"></div>
+    </div>
+    <div class="bg-main">
+      <div class="bg-block" style="height:90px"></div>
+      <div class="bg-block" style="height:150px"></div>
+      <div class="bg-block" style="height:44px;margin-top:auto"></div>
+    </div>
+  </div>
+  <div class="overlay">
+    <div class="modal">
+      <h2>개발 배경 지식이<br>어느 정도인가요?</h2>
+      <p class="sub">처음 사용하는 분들께만 보이는 안내예요.</p>
+      <div class="lvl-cards">
+        <div class="lvl" data-lv="상" onclick="pickLevel(this)">
+          <div class="lvl-name">상</div>
+          <div class="lvl-desc">코드를 자유롭게 읽고 수정할 수 있어요.</div>
+          <div class="lvl-check"></div>
+        </div>
+        <div class="lvl" data-lv="중" onclick="pickLevel(this)">
+          <div class="lvl-name">중</div>
+          <div class="lvl-desc">간단한 코드는 이해하지만 작성은 어려워요.</div>
+          <div class="lvl-check"></div>
+        </div>
+        <div class="lvl" data-lv="하" onclick="pickLevel(this)">
+          <div class="lvl-name">하</div>
+          <div class="lvl-desc">코드를 한 번도 작성해본 적 없거나 초보자 수준이에요.</div>
+          <div class="lvl-check"></div>
+        </div>
+      </div>
+      <button class="cta" id="s1cta" disabled onclick="toS2()">작업 시작하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SCREEN 2 ══════════════════ -->
+<div id="s2" class="screen">
+  <!-- Top bar — NO step pill -->
+  <div class="top-bar">
+    <span class="bar-title">프로젝트 설정</span>
+    <span class="bar-sub">아이디어를 구조화해요</span>
+  </div>
+
+  <div class="panels">
+    <!-- LEFT — AI 어시스턴트 (Screen 3 스타일과 동일) -->
+    <div class="p-left" style="width:300px">
+      <div class="p-head">AI 어시스턴트</div>
+      <!-- 음성 입력 (이전 크기 그대로) -->
+      <div class="voice-panel">
+        <p class="voice-instr">만들고 싶은 페이지를<br>말로 설명해주세요.</p>
+        <div class="mic-wrap">
+          <button class="mic" id="micBtn" onclick="toggleMic()">
+            <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm5 9.9c0 2.66-2.24 4.74-5 4.74S7 13.56 7 10.9H5c0 3.41 2.72 6.23 6 6.72V20H9v2h6v-2h-2v-2.38c3.28-.48 6-3.3 6-6.72h-2z"/></svg>
+          </button>
+          <div class="wave" id="wave">
+            <div class="wbar" id="wb0"></div><div class="wbar" id="wb1"></div>
+            <div class="wbar" id="wb2"></div><div class="wbar" id="wb3"></div>
+            <div class="wbar" id="wb4"></div><div class="wbar" id="wb5"></div>
+            <div class="wbar" id="wb6"></div>
+          </div>
+          <div class="rec-timer" id="recTimer"><div class="rdot"></div><span id="timerTxt">00:00</span></div>
+        </div>
+        <div class="silence" id="silenceBox">
+          <p>더 하실 말씀이 있나요?</p>
+          <div class="sil-btns">
+            <button class="btn-ghost" onclick="silContinue()">계속하기</button>
+            <button class="btn-sm" onclick="silDone()">완료</button>
+          </div>
+        </div>
+      </div>
+      <hr class="log-section-divider">
+      <div class="log-section-head">대화 로그</div>
+      <div class="log-list" id="s2Log">
+        <p class="ai-hint">마이크를 켜면 AI가<br>실시간으로 분석해요.</p>
+      </div>
+      <div class="p-input">
+        <div class="p-input-inner">
+          <input class="p-inp" id="s2Inp" placeholder="Reply to Claude..."
+            onkeydown="if(event.key==='Enter'&&!event.isComposing)sendS2()">
+          <button class="p-send" onclick="sendS2()">↑</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER — Analysis + Ref (우측 패널 제거됨) -->
+    <div class="p-content">
+      <div class="p-head">요구사항 분석</div>
+      <div class="content-area" id="contentArea">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">🎙️</div>
+          <p>왼쪽 AI 어시스턴트에서<br>마이크 버튼을 눌러 아이디어를 설명해주세요.<br>자동으로 구조화해드려요.</p>
+        </div>
+        <div class="struct-block" id="structBlock">
+          <div class="struct-label">이렇게 이해했어요</div>
+          <div class="srow"><div class="slabel">목적</div><div class="sval" id="sv0">앱 할인 프로모션 이벤트 페이지</div><button class="sedit" onclick="editRow(0)">편집</button></div>
+          <div class="srow"><div class="slabel">타겟</div><div class="sval" id="sv1">모바일 웹 사용자 (375px)</div><button class="sedit" onclick="editRow(1)">편집</button></div>
+          <div class="srow"><div class="slabel">구성 요소</div><div class="sval" id="sv2">쿠폰 플로팅 애니메이션 섹션, CTA 버튼, 쿠폰 이동 링크</div><button class="sedit" onclick="editRow(2)">편집</button></div>
+          <div class="srow"><div class="slabel">기능</div><div class="sval" id="sv3">쿠폰 수령 → 구매 페이지 이동</div><button class="sedit" onclick="editRow(3)">편집</button></div>
+          <div class="srow"><div class="slabel">배포 방식</div><div class="sval" id="sv4">정적 HTML 배포 (GitHub Pages)</div><button class="sedit" onclick="editRow(4)">편집</button></div>
+        </div>
+
+        <!-- 3-column UI mockup grid -->
+        <div class="ref-block" id="refBlock">
+          <div class="struct-label" style="margin-top:20px">화면 예시를 골라주세요</div>
+          <div class="ref-grid">
+            <!-- Variation A: Mint/Lavender (original) -->
+            <div class="ref-grid-item" onclick="pickRef(this)">
+              <div class="ref-mock">
+                <div class="rev rev-a">
+                  <div class="rev-date">7.21 – 7.23</div>
+                  <div class="rev-off-badge">~80% OFF</div>
+                  <div class="rev-title">주말 특가</div>
+                  <div class="rev-badges">
+                    <span class="rev-b-pill" style="background:rgba(255,255,255,.5);color:#333">WEEKEND</span>
+                    <span class="rev-b-pill" style="background:#7c5cbf;color:#fff">Sale</span>
+                  </div>
+                  <div class="rev-coupon rev-coupon-a">
+                    <div class="rev-cpn-label">추가할인</div>
+                    <div class="rev-cpn-val">10% OFF</div>
+                    <div class="rev-cpn-code">COUPON 1</div>
+                  </div>
+                  <div class="rev-cta rev-cta-a">쿠폰 한 번에 다운받기</div>
+                </div>
+              </div>
+              <div class="ref-grid-info">
+                <div class="ref-grid-name">베리에이션 A</div>
+                <div class="ref-grid-desc">민트/라벤더 그라디언트</div>
+              </div>
+            </div>
+            <!-- Variation B: Coral/Peach (warm) -->
+            <div class="ref-grid-item" onclick="pickRef(this)">
+              <div class="ref-mock">
+                <div class="rev rev-b">
+                  <div class="rev-date" style="color:rgba(80,20,30,.6)">7.21 – 7.23</div>
+                  <div class="rev-off-badge" style="background:rgba(180,40,60,.15);color:#a01830">~80% OFF</div>
+                  <div class="rev-title" style="color:#2a0010">주말 특가</div>
+                  <div class="rev-badges">
+                    <span class="rev-b-pill" style="background:rgba(255,255,255,.55);color:#5a1020">WEEKEND</span>
+                    <span class="rev-b-pill" style="background:#c03060;color:#fff">Sale</span>
+                  </div>
+                  <div class="rev-coupon rev-coupon-b">
+                    <div class="rev-cpn-label">추가할인</div>
+                    <div class="rev-cpn-val">10% OFF</div>
+                    <div class="rev-cpn-code">COUPON 1</div>
+                  </div>
+                  <div class="rev-cta rev-cta-b">쿠폰 한 번에 다운받기</div>
+                </div>
+              </div>
+              <div class="ref-grid-info">
+                <div class="ref-grid-name">베리에이션 B</div>
+                <div class="ref-grid-desc">코랄/피치 웜 톤</div>
+              </div>
+            </div>
+            <!-- Variation C: Dark Navy -->
+            <div class="ref-grid-item" onclick="pickRef(this)">
+              <div class="ref-mock">
+                <div class="rev rev-c">
+                  <div class="rev-date" style="color:rgba(180,210,255,.5)">7.21 – 7.23</div>
+                  <div class="rev-off-badge" style="background:rgba(0,212,255,.15);color:#00d4ff">~80% OFF</div>
+                  <div class="rev-title" style="color:#e8f4ff">주말 특가</div>
+                  <div class="rev-badges">
+                    <span class="rev-b-pill" style="background:rgba(255,255,255,.12);color:#b0d8ff">WEEKEND</span>
+                    <span class="rev-b-pill" style="background:#00d4ff;color:#001a2e">Sale</span>
+                  </div>
+                  <div class="rev-coupon rev-coupon-c">
+                    <div class="rev-cpn-label">추가할인</div>
+                    <div class="rev-cpn-val">10% OFF</div>
+                    <div class="rev-cpn-code">COUPON 1</div>
+                  </div>
+                  <div class="rev-cta rev-cta-c">쿠폰 한 번에 다운받기</div>
+                </div>
+              </div>
+              <div class="ref-grid-info">
+                <div class="ref-grid-name">베리에이션 C</div>
+                <div class="ref-grid-desc">딥 네이비 다크 톤</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fw-label">Framework 구성도</div>
+          <div class="fw-row">
+            <div style="position:relative">
+              <div class="fw-box">Figma <span class="fw-i">ⓘ<span class="fw-tip">Figma: 디자인 원본 파일</span></span></div>
+            </div>
+            <div class="fw-arr">→</div>
+            <div style="position:relative">
+              <div class="fw-box">HTML/CSS/JS <span class="fw-i">ⓘ<span class="fw-tip">HTML/CSS/JS: 실제 코드로 구현되는 언어</span></span></div>
+            </div>
+            <div class="fw-arr">→</div>
+            <div style="position:relative">
+              <div class="fw-box">GitHub Pages <span class="fw-i">ⓘ<span class="fw-tip">GitHub Pages: 무료 정적 웹 호스팅 서비스</span></span></div>
+            </div>
+          </div>
+          <div class="cta-row">
+            <button class="cta-full" onclick="toS3()">이 방향이 맞나요? →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════ SCREEN 3 ══════════════════ -->
+<div id="s3" class="screen">
+  <!-- Breadcrumb -->
+  <div class="top-bar">
+    <div class="bc-step act" id="bc0">
+      <div class="bc-icon" id="bci0">✦</div>
+      <div class="bc-info"><div class="bc-name">디자인 연결</div><div class="bc-time">~2분</div></div>
+    </div>
+    <div class="bc-conn">→</div>
+    <div class="bc-step" id="bc1">
+      <div class="bc-icon" id="bci1">✦</div>
+      <div class="bc-info"><div class="bc-name">코드 생성</div><div class="bc-time">~3분</div></div>
+    </div>
+    <div class="bc-conn">→</div>
+    <div class="bc-step" id="bc2">
+      <div class="bc-icon" id="bci2">✦</div>
+      <div class="bc-info"><div class="bc-name">배포 설정</div><div class="bc-time">~2분</div></div>
+    </div>
+    <div class="bc-conn">→</div>
+    <div class="bc-step" id="bc3">
+      <div class="bc-icon" id="bci3">✦</div>
+      <div class="bc-info"><div class="bc-name">완료</div><div class="bc-time"></div></div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <!-- LEFT — Workflow + Work Log + Input -->
+    <div class="p-left" style="width:300px">
+      <div class="p-head">AI 어시스턴트</div>
+      <div class="task-list">
+        <div class="task">
+          <div class="t-icon t-done">✓</div>
+          <div><div class="t-name">Figma 파일 구조 분석</div><span class="badge b-done">완료</span></div>
+        </div>
+        <div class="task">
+          <div class="t-icon t-run" style="animation:spin 1.2s linear infinite">↻</div>
+          <div><div class="t-name">쿠폰 섹션 코드 생성</div><span class="badge b-run"><span class="pdot"></span>진행 중</span></div>
+        </div>
+        <div class="task">
+          <div class="t-icon t-wait">○</div>
+          <div><div class="t-name">반응형 레이아웃 적용</div><span class="badge b-wait">대기 중</span></div>
+        </div>
+        <div class="task">
+          <div class="t-icon t-wait">○</div>
+          <div><div class="t-name">배포 설정</div><span class="badge b-wait">대기 중</span></div>
+        </div>
+      </div>
+      <!-- Work Log sub-section -->
+      <hr class="log-section-divider">
+      <div class="log-section-head">작업 로그</div>
+      <div class="log-list" id="logList"></div>
+      <div class="p-input">
+        <div class="p-input-inner">
+          <input class="p-inp" id="s3Inp" placeholder="Reply to Claude..."
+            onkeydown="if(event.key==='Enter'&&!event.isComposing)sendCmd()">
+          <button class="p-send" onclick="sendCmd()">↑</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER — Code view -->
+    <div class="p-center">
+      <div class="p-head">코드 미리보기</div>
+      <div class="code-view"><pre id="codePre"></pre></div>
+    </div>
+
+    <!-- RIGHT — Live UI Preview -->
+    <div class="p-right" style="width:280px">
+      <div class="p-head">UI 미리보기</div>
+      <div class="preview-area">
+        <div class="phone-outer">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="mep-wrap">
+              <div class="mep-date mep-anim" id="mepDate">7.21 – 7.23</div>
+              <div class="mep-title mep-anim" id="mepTitle">주말특가</div>
+              <div class="mep-badges mep-anim" id="mepBadges">
+                <span class="mep-b-pill mep-b-white">WEEKEND</span>
+                <span class="mep-b-pill mep-b-purple">Sale</span>
+              </div>
+              <div class="mep-env-wrap mep-anim" id="mepCard">
+                <div class="mep-env-card">
+                  <div class="mep-env-cpn-label">COUPON</div>
+                  <div class="mep-env-cpn-val">10%</div>
+                  <div class="mep-env-cpn-unit">OFF</div>
+                </div>
+              </div>
+              <div class="mep-spacer"></div>
+              <button class="mep-cta mep-anim" id="mepCta">쿠폰 한 번에 다운받기</button>
+              <div class="mep-disclaimer mep-anim" id="mepDisclaimer">* 일부 상품 제외 / 중복 적용 불가</div>
+            </div>
+          </div>
+        </div>
+        <div class="preview-dim">375 × 815</div>
+        <p class="preview-note">코드 수정 시 실시간으로 반영돼요</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let recActive=false, recTimer=null, waveTimer=null, silTimer=null, recSecs=0, s3inited=false;
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2800);
+}
+
+// ── SCREEN 1 ─────────────────────────────────────────────
+function pickLevel(el){
+  document.querySelectorAll('.lvl').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel'); document.getElementById('s1cta').disabled=false;
+  if(el.dataset.lv==='하') setTimeout(()=>toast('괜찮아요. 아이디어만 있으면 충분해요 ✦'),400);
+}
+function toS2(){ goTo('s2') }
+
+// ── SCREEN 2: MIC ─────────────────────────────────────────
+function toggleMic(){ if(!recActive) startRec(); else finishRec(); }
+
+function startRec(){
+  recActive=true; recSecs=0;
+  document.getElementById('micBtn').classList.add('rec');
+  document.getElementById('wave').classList.add('on');
+  document.getElementById('recTimer').style.display='flex';
+  const sub=document.getElementById('vcSub'); if(sub) sub.textContent='듣고 있어요...';
+  tickTimer(); recTimer=setInterval(tickTimer,1000);
+  waveTimer=setInterval(animWave,190);
+  silTimer=setTimeout(()=>{ if(recActive) document.getElementById('silenceBox').classList.add('on'); },3000);
+  document.getElementById('s2Log').innerHTML='';
+  appendLoading('s2Log','음성을 듣고 있어요...');
+}
+function stopRecState(){
+  recActive=false;
+  clearInterval(recTimer); clearInterval(waveTimer); clearTimeout(silTimer);
+  document.getElementById('micBtn').classList.remove('rec');
+  document.getElementById('wave').classList.remove('on');
+  document.getElementById('silenceBox').classList.remove('on');
+  for(let i=0;i<7;i++){const b=document.getElementById('wb'+i);if(b)b.style.height='6px';}
+}
+function finishRec(){
+  stopRecState();
+  document.getElementById('recTimer').style.display='none';
+  const sub=document.getElementById('vcSub'); if(sub) sub.textContent='분석 완료';
+  revealStructured();
+}
+function tickTimer(){
+  const m=String(Math.floor(recSecs/60)).padStart(2,'0');
+  const s=String(recSecs%60).padStart(2,'0');
+  document.getElementById('timerTxt').textContent=m+':'+s; recSecs++;
+}
+function animWave(){
+  for(let i=0;i<7;i++){
+    const h=Math.random()*26+5;
+    const b=document.getElementById('wb'+i); if(b) b.style.height=h+'px';
+  }
+}
+function silContinue(){
+  document.getElementById('silenceBox').classList.remove('on');
+  silTimer=setTimeout(()=>{ if(recActive) document.getElementById('silenceBox').classList.add('on'); },3000);
+}
+function silDone(){ finishRec(); }
+function toggleTxtArea(){ document.getElementById('txtArea').classList.toggle('on'); }
+
+function revealStructured(){
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('structBlock').classList.add('on');
+  document.getElementById('refBlock').classList.add('on');
+  const id='s2Log';
+  document.getElementById(id).innerHTML='';
+  const seq=[
+    {d:0,   fn:()=>appendText(id,'음성 분석을 완료했어요!')},
+    {d:350, fn:()=>appendTool(id,'Grep','목적 / 타겟')},
+    {d:700, fn:()=>appendTool(id,'Read','사용자 요구사항')},
+    {d:1050,fn:()=>appendText(id,'목적과 타겟을 파악했어요. 구성 요소 3개를 정리했어요.')},
+    {d:1400,fn:()=>appendText(id,'GitHub Pages 배포 방식이 적합해요.')},
+    {d:1750,fn:()=>appendText(id,'스타일 레퍼런스를 선택하면 코드 생성을 시작할게요.')},
+  ];
+  seq.forEach(s=>setTimeout(s.fn,s.d));
+}
+function sendS2(){
+  const inp=document.getElementById('s2Inp'); const v=inp.value.trim(); if(!v) return; inp.value='';
+  appendUser('s2Log',v);
+  setTimeout(()=>appendText('s2Log','확인했어요. 작업에 반영할게요.'),350);
+}
+
+// ── STRUCT EDIT ───────────────────────────────────────────
+function editRow(idx){
+  const v=document.getElementById('sv'+idx);
+  const btn=v.closest('.srow').querySelector('.sedit');
+  if(btn.textContent==='편집'){
+    const cur=v.textContent; v.innerHTML='';
+    const inp=document.createElement('input'); inp.value=cur; v.appendChild(inp); inp.focus();
+    btn.textContent='저장';
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') editRow(idx); });
+  } else {
+    const inp=v.querySelector('input'); if(inp) v.textContent=inp.value; btn.textContent='편집';
+  }
+}
+function pickRef(el){
+  document.querySelectorAll('.ref-grid-item').forEach(r=>r.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function toS3(){ goTo('s3'); if(!s3inited){ s3inited=true; initS3(); } }
+
+// ── LOG HELPERS ───────────────────────────────────────────
+function appendUser(id,text){
+  const list=document.getElementById(id);
+  const d=document.createElement('div'); d.className='log-user'; d.textContent=text;
+  list.appendChild(d); list.scrollTop=list.scrollHeight;
+}
+function appendText(id,text){
+  const list=document.getElementById(id);
+  const d=document.createElement('div'); d.className='log-item';
+  d.innerHTML=`<span class="log-bull">•</span><span class="log-body">${text}</span>`;
+  list.appendChild(d); list.scrollTop=list.scrollHeight;
+}
+function appendTool(id,verb,file){
+  const list=document.getElementById(id);
+  const d=document.createElement('div'); d.className='log-item';
+  d.innerHTML=`<span class="log-bull">•</span><span class="log-body"><span class="log-verb">${verb}</span> <span class="log-file">${file}</span></span>`;
+  list.appendChild(d); list.scrollTop=list.scrollHeight; return d;
+}
+function appendLoading(id,text){
+  const list=document.getElementById(id);
+  const d=document.createElement('div'); d.className='log-loading';
+  d.innerHTML=`<span>*</span><span>${text}<span class="lcursor"> </span></span>`;
+  list.appendChild(d); list.scrollTop=list.scrollHeight; return d;
+}
+
+// ── SCREEN 3 ─────────────────────────────────────────────
+const CODE_LINES=[
+  {h:'<span class="tk-doc">&lt;!DOCTYPE html&gt;</span>'},
+  {h:'<span class="tk-tag">&lt;html</span> <span class="tk-attr">lang</span>=<span class="tk-val">"ko"</span><span class="tk-tag">&gt;</span>'},
+  {h:'<span class="tk-tag">&lt;head&gt;</span>'},
+  {h:'  <span class="tk-tag">&lt;meta</span> <span class="tk-attr">charset</span>=<span class="tk-val">"UTF-8"</span><span class="tk-tag">&gt;</span>'},
+  {h:'  <span class="tk-tag">&lt;meta</span> <span class="tk-attr">name</span>=<span class="tk-val">"viewport"</span> <span class="tk-attr">content</span>=<span class="tk-val">"width=375"</span><span class="tk-tag">&gt;</span>'},
+  {h:'  <span class="tk-tag">&lt;title&gt;</span>주말특가 이벤트<span class="tk-tag">&lt;/title&gt;</span>'},
+  {h:'<span class="tk-tag">&lt;/head&gt;</span>'},
+  {h:'<span class="tk-tag">&lt;body&gt;</span>'},
+  {h:'  <span class="tk-tag">&lt;section</span> <span class="tk-attr">class</span>=<span class="tk-val">"event-page"</span> <span class="tk-attr">style</span>=<span class="tk-val">"height:815px"</span><span class="tk-tag">&gt;</span>'},
+  {h:'    <span class="tk-comment">&lt;!-- 7.21–7.23 주말특가 이벤트 --&gt;</span>'},
+  {h:'    <span class="tk-tag">&lt;p</span> <span class="tk-attr">class</span>=<span class="tk-val">"date"</span><span class="tk-tag">&gt;</span>7.21 – 7.23<span class="tk-tag">&lt;/p&gt;</span>'},
+  {h:'    <span class="tk-tag">&lt;h1</span> <span class="tk-attr">class</span>=<span class="tk-val">"title"</span><span class="tk-tag">&gt;</span>주말특가<span class="tk-tag">&lt;/h1&gt;</span>'},
+  {h:'    <span class="tk-tag">&lt;div</span> <span class="tk-attr">class</span>=<span class="tk-val">"badges"</span><span class="tk-tag">&gt;</span>'},
+  {h:'      <span class="tk-tag">&lt;span&gt;</span>WEEKEND<span class="tk-tag">&lt;/span&gt;</span> <span class="tk-tag">&lt;span&gt;</span>Sale<span class="tk-tag">&lt;/span&gt;</span>'},
+  {h:'    <span class="tk-tag">&lt;/div&gt;</span>'},
+  {h:'    <span class="tk-tag">&lt;div</span> <span class="tk-attr">class</span>=<span class="tk-val">"coupon-card"</span>'},
+  {h:'         <span class="tk-attr">style</span>=<span class="tk-val">"animation-duration:<span id="animVal">1.2s</span>"</span><span class="tk-tag">&gt;</span>',id:'animValLine'},
+  {h:'      <span class="tk-tag">&lt;span</span> <span class="tk-attr">class</span>=<span class="tk-val">"label"</span><span class="tk-tag">&gt;</span>COUPON<span class="tk-tag">&lt;/span&gt;</span>'},
+  {h:'      <span class="tk-tag">&lt;strong&gt;</span>10% OFF<span class="tk-tag">&lt;/strong&gt;</span>'},
+  {h:'    <span class="tk-tag">&lt;/div&gt;</span>'},
+  {h:'    <span class="tk-tag">&lt;button</span> <span class="tk-attr">class</span>=<span class="tk-val">"cta"</span><span class="tk-tag">&gt;</span>쿠폰 한 번에 다운받기<span class="tk-tag">&lt;/button&gt;</span>'},
+  {h:'    <span class="tk-tag">&lt;small&gt;</span>* 일부 상품 제외 / 중복 적용 불가<span class="tk-tag">&lt;/small&gt;</span>'},
+  {h:'  <span class="tk-tag">&lt;/section&gt;</span>'},
+  {h:'<span class="tk-tag">&lt;/body&gt;</span>'},
+  {h:'<span class="tk-tag">&lt;/html&gt;</span>'},
+];
+
+function initS3(){
+  document.getElementById('codePre').innerHTML='';
+  ['mepDate','mepTitle','mepBadges','mepCard','mepCta','mepDisclaimer'].forEach(eid=>{
+    const el=document.getElementById(eid); if(el) el.classList.remove('mep-show');
+  });
+  streamLogs();
+  setTimeout(advanceBreadcrumb,9000);
+}
+
+function showMep(eid){
+  const el=document.getElementById(eid);
+  if(!el) return;
+  setTimeout(()=>{
+    el.classList.add('mep-show');
+    // After reveal finishes: lock opacity inline, strip CSS animation classes
+    // so later animation-property changes don't revert opacity to 0
+    setTimeout(()=>{
+      el.style.opacity='1';
+      el.classList.remove('mep-anim','mep-show');
+      if(eid==='mepCard') el.style.animation='envFloat 1.2s ease-in-out infinite';
+    },700);
+  },30);
+}
+
+function streamCodeLines(from,to,startDelay,gap){
+  const pre=document.getElementById('codePre');
+  for(let i=from;i<=to;i++){
+    const delay=startDelay+(i-from)*gap;
+    setTimeout(()=>{
+      const ln=CODE_LINES[i];
+      const d=document.createElement('div'); d.className='cl';
+      if(ln.id) d.id=ln.id;
+      d.innerHTML=`<span class="lnum">${i+1}</span><span>${ln.h}</span>`;
+      d.style.opacity='0';
+      pre.appendChild(d);
+      pre.scrollTop=pre.scrollHeight;
+      requestAnimationFrame(()=>{ d.style.transition='opacity 0.35s'; d.style.opacity='1'; });
+    },delay);
+  }
+}
+
+function streamLogs(){
+  const id='logList'; document.getElementById(id).innerHTML='';
+  const seq=[
+    // 0s — 유저 메시지
+    {d:0,    fn:()=>appendUser(id,'쿠폰 이벤트 페이지 만들어줘')},
+    // 0.8s — Claude 응답
+    {d:800,  fn:()=>appendText(id,'바로 시작할게요! Figma 파일을 먼저 확인할게요.')},
+    // 1.6s — Read figma-tokens → head 코드 스트리밍
+    {d:1600, fn:()=>appendTool(id,'Read','figma-tokens.json')},
+    {d:1800, fn:()=>streamCodeLines(0,6,0,130)},
+    // 2.7s — 폰: 날짜 + 제목 등장
+    {d:2700, fn:()=>{ showMep('mepDate'); showMep('mepTitle'); }},
+    // 3.4s — Grep discount → 뱃지 코드
+    {d:3400, fn:()=>appendTool(id,'Grep','discount')},
+    {d:3600, fn:()=>streamCodeLines(7,9,0,150)},
+    // 4.2s — 폰: WEEKEND·Sale 뱃지 등장
+    {d:4200, fn:()=>showMep('mepBadges')},
+    // 4.8s — Read pricing_utils
+    {d:4800, fn:()=>appendTool(id,'Read','pricing_utils.ts')},
+    {d:5000, fn:()=>streamCodeLines(10,14,0,160)},
+    // 5.9s — 로직 확인 메시지
+    {d:5900, fn:()=>appendText(id,'쿠폰 컴포넌트 로직을 찾았어요. 코드를 작성할게요.')},
+    // 6.7s — Edit index.html → 쿠폰 카드 코드 + 폰에 카드 등장
+    {d:6700, fn:()=>appendTool(id,'Edit','index.html')},
+    {d:6900, fn:()=>streamCodeLines(15,19,0,170)},
+    {d:7200, fn:()=>showMep('mepCard')},
+    // 8.0s — Edit style.css → CTA + disclaimer 등장
+    {d:8000, fn:()=>appendTool(id,'Edit','style.css')},
+    {d:8200, fn:()=>streamCodeLines(20,24,0,130)},
+    {d:8500, fn:()=>showMep('mepCta')},
+    {d:8900, fn:()=>showMep('mepDisclaimer')},
+    // 9.8s — 초안 완성 + 속도 경고 (시나리오 step 11)
+    {d:9800, fn:()=>appendText(id,'초안이 완성됐어요! 쿠폰 애니메이션이 1.2s로 설정돼 있어요 — 조금 빠르게 느껴질 수 있어요.')},
+    {d:10600,fn:()=>appendLoading(id,'Reticulating...')},
+  ];
+  seq.forEach(s=>setTimeout(s.fn,s.d));
+}
+function advanceBreadcrumb(){
+  document.getElementById('bc0').classList.remove('act');
+  document.getElementById('bc0').classList.add('done');
+  document.getElementById('bci0').textContent='✓';
+  document.getElementById('bc1').classList.add('act');
+}
+function advanceBreadcrumb2(){
+  document.getElementById('bc1').classList.remove('act');
+  document.getElementById('bc1').classList.add('done');
+  document.getElementById('bci1').textContent='✓';
+  document.getElementById('bc2').classList.add('act');
+}
+function sendCmd(){
+  const inp=document.getElementById('s3Inp');
+  const v=inp.value.trim(); if(!v) return; inp.value='';
+  const loading=document.querySelector('#logList .log-loading');
+  if(loading) loading.remove();
+  appendUser('logList',v);
+  applyAnimEdit();
+}
+function applyAnimEdit(){
+  const id='logList';
+  // 시나리오 step 13: Claude 응답 + 코드 수정
+  setTimeout(()=>appendText(id,'네, 속도 바로 조정할게요!'),500);
+
+  // 코드뷰: animValLine 하이라이트 → 1.2s → 2.4s
+  setTimeout(()=>{
+    const line=document.getElementById('animValLine');
+    if(line) line.classList.add('hl');
+  },1000);
+  setTimeout(()=>{
+    const val=document.getElementById('animVal');
+    if(val) val.textContent='2.4s';
+  },1300);
+  setTimeout(()=>{
+    const line=document.getElementById('animValLine');
+    if(line) line.classList.remove('hl');
+    // 폰 미리보기 애니메이션 2.4s로 교체
+    const mc=document.getElementById('mepCard');
+    if(mc) mc.style.animation='envFloat 2.4s ease-in-out infinite';
+  },1700);
+
+  // 로그: Edit + 확인
+  setTimeout(()=>appendTool(id,'Edit','style.css'),2000);
+  setTimeout(()=>appendText(id,'animation-duration 1.2s → 2.4s 반영됐어요 ✓'),2600);
+
+  // 다음 단계: 배포 설정 진행 (시나리오 계속)
+  setTimeout(()=>appendLoading(id,'배포 파일 빌드 중...'),3600);
+  setTimeout(()=>{
+    advanceBreadcrumb2();
+  },4200);
+  setTimeout(()=>{
+    const loading=document.querySelector('#logList .log-loading');
+    if(loading) loading.remove();
+    appendTool(id,'Write','dist/index.html');
+  },4600);
+  setTimeout(()=>appendTool(id,'Run','gh-pages --dist'),5300);
+  setTimeout(()=>appendText(id,'GitHub Pages 배포 완료! 링크가 준비됐어요.'),6100);
+  setTimeout(()=>appendLoading(id,'Reticulating...'),6800);
+}
+</script>
+</body>
+</html>
