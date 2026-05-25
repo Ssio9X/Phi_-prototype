@@ -3,1013 +3,1122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Claude Code — Redesigned Prototype</title>
+<title>CodeX — Prototype</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#f5f3ef;--panel:#ffffff;--border:#e5e2dc;
-  --accent:#c94b2a;--accent-h:#a83e24;
-  --text:#1a1a1a;--muted:#6b6b6b;--faint:#aaa;
-  --mono:'Courier New',monospace;--r:12px;
+/* ── DESIGN.md Apple Design Tokens ── */
+:root {
+  --primary:        #0066cc;
+  --primary-focus:  #0071e3;
+  --primary-dark:   #2997ff;
+  --ink:            #1d1d1f;
+  --ink-muted-80:   #333333;
+  --ink-muted-48:   #7a7a7a;
+  --body-muted:     #cccccc;
+  --canvas:         #ffffff;
+  --canvas-parchment: #f5f5f7;
+  --surface-pearl:  #fafafc;
+  --hairline:       #e0e0e0;
+  --divider-soft:   #f0f0f0;
+  /* radius */
+  --r-sm:   8px;
+  --r-md:   11px;
+  --r-lg:   18px;
+  --r-pill: 9999px;
+  /* spacing */
+  --sp-xs:  8px;
+  --sp-sm:  12px;
+  --sp-md:  17px;
+  --sp-lg:  24px;
+  /* typography */
+  --font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-text:    "SF Pro Text",    -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
-html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow:hidden}
-button{cursor:pointer;font-family:inherit;font-size:14px}
 
-.screen{position:fixed;inset:0;opacity:0;pointer-events:none;
-  transition:opacity 300ms ease;overflow:hidden;display:flex;flex-direction:column}
-.screen.active{opacity:1;pointer-events:all}
-@media(prefers-reduced-motion:reduce){
-  .screen{transition:none}
-  *{animation-duration:.01ms!important;animation-iteration-count:1!important}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:var(--font-text);background:#d8d8da;overflow:hidden;}
+
+/* ── App shell ── */
+.app{display:flex;height:100vh;background:#fff;max-width:1440px;margin:0 auto;box-shadow:0 0 80px rgba(0,0,0,.2);}
+
+/* ══════════════ SIDEBAR ══════════════ */
+.sidebar{width:280px;min-width:280px;height:100%;border-right:1px solid var(--hairline);display:flex;flex-direction:column;background:var(--canvas);overflow:hidden;}
+
+.sb-icons{display:flex;justify-content:flex-end;gap:4px;padding:12px 12px 0;}
+.sb-icon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;color:var(--ink-muted-48);border-radius:var(--r-sm);transition:background .15s;}
+.sb-icon:hover{background:var(--canvas-parchment);color:var(--ink);}
+
+.sb-tabs{display:flex;padding:8px 12px 0;border-bottom:1px solid var(--hairline);gap:2px;}
+.sb-tab{padding:8px 14px;font-size:12px;color:var(--ink-muted-48);cursor:pointer;border:none;background:transparent;font-family:var(--font-text);position:relative;border-radius:var(--r-sm) var(--r-sm) 0 0;transition:color .15s;letter-spacing:-0.12px;}
+.sb-tab.active{color:var(--primary);font-weight:600;}
+.sb-tab.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--primary);border-radius:2px 2px 0 0;}
+
+.sb-nav{padding:10px 8px 0;}
+.sb-nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-sm);cursor:pointer;font-size:14px;font-weight:400;color:var(--ink-muted-80);letter-spacing:-0.224px;transition:background .15s;user-select:none;}
+.sb-nav-item:hover{background:var(--canvas-parchment);}
+.sb-nav-icon{width:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink-muted-48);}
+
+.sb-recents{flex:1;overflow:hidden;padding:8px 8px 0;}
+.sb-recents-header{display:flex;align-items:center;justify-content:space-between;padding:4px 10px 8px;}
+.sb-recents-title{font-size:11px;font-weight:600;color:var(--ink-muted-48);text-transform:uppercase;letter-spacing:.6px;}
+.sb-gear{width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--body-muted);border-radius:4px;border:none;background:transparent;transition:background .15s;}
+.sb-gear:hover{background:var(--canvas-parchment);color:var(--ink-muted-48);}
+.sb-recent{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:var(--r-sm);cursor:pointer;font-size:13px;color:var(--ink-muted-80);transition:background .15s;letter-spacing:-0.2px;}
+.sb-recent:hover{background:var(--canvas-parchment);}
+.sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sb-dot.yellow{background:#f5a623;}
+.sb-dot.gray{background:var(--body-muted);}
+.sb-recent-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+
+.sb-bottom{padding:var(--sp-sm) var(--sp-lg);border-top:1px solid var(--divider-soft);font-size:13px;color:var(--ink-muted-48);display:none;background:var(--canvas-parchment);}
+.sb-bottom.show{display:block;}
+
+/* ══════════════ MAIN ══════════════ */
+.main{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;}
+
+/* Screens */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff;opacity:0;pointer-events:none;transform:translateX(24px);transition:opacity .25s ease,transform .3s cubic-bezier(.4,0,.2,1);}
+.screen.active{opacity:1;pointer-events:all;transform:translateX(0);}
+.screen.out-left{opacity:0;transform:translateX(-20px);transition:opacity .25s ease,transform .3s cubic-bezier(.4,0,.2,1);}
+
+/* ════ SCREEN 1 — HOME ════ */
+.s1-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-lg);}
+.s1-welcome{
+  font-family:var(--font-display);
+  font-size:28px;font-weight:400;
+  color:var(--body-muted);
+  letter-spacing:0.196px;
+  line-height:1.14;
+}
+.s1-cta{
+  display:flex;align-items:center;gap:var(--sp-xs);
+  padding:11px 22px;
+  background:var(--ink);color:var(--canvas);
+  border:none;border-radius:var(--r-pill);
+  font-family:var(--font-text);font-size:17px;font-weight:400;
+  letter-spacing:-0.374px;
+  cursor:pointer;
+  transition:background .2s,transform .15s;
+}
+.s1-cta:hover{background:#000;}
+.s1-cta:active{transform:scale(.95);}
+.s1-cta svg{flex-shrink:0;}
+
+/* Bottom bar */
+.bot-bar{border-top:1px solid var(--divider-soft);padding:var(--sp-sm) var(--sp-lg) var(--sp-md);flex-shrink:0;background:var(--canvas);}
+.bot-pills{display:flex;gap:6px;margin-bottom:var(--sp-xs);}
+.bot-pill{
+  display:flex;align-items:center;gap:5px;
+  padding:6px 12px;
+  border:1px solid var(--hairline);border-radius:var(--r-md);
+  font-family:var(--font-text);font-size:12px;color:var(--ink-muted-80);
+  cursor:pointer;background:var(--canvas);
+  white-space:nowrap;transition:background .15s;
+}
+.bot-pill:hover{background:var(--canvas-parchment);}
+.bot-input-box{border:1px solid var(--hairline);border-radius:var(--r-lg);overflow:hidden;}
+.bot-textarea{width:100%;padding:12px 14px;font-family:var(--font-text);font-size:14px;color:var(--ink);border:none;outline:none;resize:none;line-height:1.47;min-height:46px;max-height:120px;letter-spacing:-0.224px;}
+.bot-textarea::placeholder{color:var(--body-muted);}
+.bot-actions{display:flex;align-items:center;gap:6px;padding:7px 10px;border-top:1px solid var(--divider-soft);}
+.ba-btn{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:1px solid var(--hairline);background:var(--canvas);cursor:pointer;color:var(--ink-muted-48);transition:background .15s;}
+.ba-btn:hover{background:var(--canvas-parchment);}
+.ba-text{display:flex;align-items:center;gap:3px;padding:4px 9px;border:1px solid var(--hairline);border-radius:var(--r-sm);font-family:var(--font-text);font-size:12px;color:var(--ink-muted-48);cursor:pointer;background:var(--canvas);transition:background .15s;white-space:nowrap;letter-spacing:-0.12px;}
+.ba-text:hover{background:var(--canvas-parchment);}
+.ba-spacer{flex:1;}
+.ba-send{width:30px;height:30px;border-radius:50%;border:none;background:var(--body-muted);color:var(--canvas);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s,transform .15s;flex-shrink:0;}
+.ba-send.on{background:var(--primary);}
+.ba-send:active{transform:scale(.95);}
+
+/* ════ SCREEN 2 — FORM ════ */
+.top-bar{display:flex;align-items:center;padding:14px 24px 12px;border-bottom:1px solid var(--divider-soft);flex-shrink:0;gap:0;background:var(--canvas);}
+.back-circle{width:34px;height:34px;border-radius:50%;background:var(--ink);border:none;color:var(--canvas);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .15s;line-height:1;}
+.back-circle:hover{background:var(--ink-muted-80);}
+.back-circle:active{transform:scale(.95);}
+
+.steps{flex:1;display:flex;align-items:center;justify-content:center;gap:0;}
+.step-item{display:flex;align-items:center;gap:7px;}
+.step-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-text);font-size:13px;font-weight:600;background:var(--hairline);color:var(--body-muted);flex-shrink:0;transition:background .3s,color .3s;}
+.step-num.on{background:var(--primary);color:var(--canvas);}
+.step-txt{font-family:var(--font-text);font-size:13px;color:var(--body-muted);white-space:nowrap;transition:color .3s;letter-spacing:-0.2px;}
+.step-txt.on{color:var(--primary);font-weight:600;}
+.step-line{width:48px;height:1px;background:var(--hairline);margin:0 6px;}
+.top-bar-spacer{width:34px;}
+
+/* Form content */
+.form-scroll{flex:1;overflow-y:auto;padding:var(--sp-lg) 32px var(--sp-md);}
+.form-h1{
+  font-family:var(--font-display);
+  font-size:28px;font-weight:600;
+  color:var(--ink);
+  letter-spacing:-0.28px;line-height:1.14;
+  margin-bottom:var(--sp-lg);
 }
 
-/* ══ SCREEN 1 ══════════════════════════════════════════════ */
-#s1{align-items:center;justify-content:center;background:var(--bg)}
-.bg-blur{position:absolute;inset:0;filter:blur(5px);pointer-events:none;opacity:.5;display:flex}
-.bg-side{width:240px;background:#fff;border-right:1px solid var(--border);padding:16px;flex-shrink:0}
-.bg-logo{font-size:15px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}
-.bg-logo-mark{width:22px;height:22px;background:#c94b2a;border-radius:6px}
-.bg-file{height:24px;background:#f0ede8;border-radius:5px;margin-bottom:8px}
-.bg-main{flex:1;padding:20px;display:flex;flex-direction:column;gap:10px}
-.bg-block{background:#fff;border:1px solid var(--border);border-radius:12px}
-.overlay{position:absolute;inset:0;background:rgba(0,0,0,.28);backdrop-filter:blur(2px);
-  display:flex;align-items:center;justify-content:center;z-index:10}
-.modal{background:#fff;border-radius:16px;width:360px;padding:28px 28px 24px;
-  box-shadow:0 24px 64px rgba(0,0,0,.16)}
-.modal h2{font-size:18px;font-weight:700;line-height:1.4;margin-bottom:6px}
-.modal .sub{font-size:12px;color:var(--muted);margin-bottom:20px}
-.lvl-cards{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
-.lvl{border:1.5px solid var(--border);border-radius:10px;padding:13px 15px;cursor:pointer;
-  position:relative;background:#fff;transition:border-color 180ms,background 180ms}
-.lvl:hover{border-color:#c9a99a;background:#fdf9f7}
-.lvl.sel{border-color:var(--accent);background:#fdf5f3}
-.lvl-name{font-weight:700;font-size:14px;margin-bottom:2px}
-.lvl-desc{font-size:12px;color:var(--muted)}
-.lvl-check{position:absolute;top:11px;right:11px;width:19px;height:19px;background:var(--accent);
-  border-radius:50%;display:none;align-items:center;justify-content:center}
-.lvl.sel .lvl-check{display:flex}
-.lvl-check::after{content:'';width:4px;height:7px;border:2px solid #fff;
-  border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);display:block}
-.cta{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;
-  border-radius:8px;font-weight:600;font-size:14px;transition:background 180ms}
-.cta:disabled{background:#d9d5cf;color:#aaa;cursor:not-allowed}
-.cta:not(:disabled):hover{background:var(--accent-h)}
+/* Type cards */
+.cards-row{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-sm);margin-bottom:var(--sp-lg);}
+.t-card{
+  border:1.5px solid var(--hairline);
+  border-radius:var(--r-lg);
+  overflow:hidden;cursor:pointer;
+  transition:border-color .2s,box-shadow .2s;
+  background:var(--canvas);
+}
+.t-card:hover{border-color:#c0c0c0;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.t-card.sel{border-color:var(--ink);border-width:2px;box-shadow:0 2px 16px rgba(0,0,0,.1);}
+.t-card-img{background:var(--canvas-parchment);aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;}
+.t-card-body{padding:var(--sp-sm) var(--sp-md) var(--sp-md);}
+.t-card-ico{margin-bottom:var(--sp-xs);color:var(--ink-muted-48);}
+.t-card-name{
+  font-family:var(--font-display);
+  font-size:17px;font-weight:600;
+  color:var(--ink);margin-bottom:5px;
+  letter-spacing:-0.374px;
+}
+.t-card-desc{font-family:var(--font-text);font-size:12px;color:var(--ink-muted-48);line-height:1.5;letter-spacing:-0.12px;}
 
-/* ══ TOAST ════════════════════════════════════════════════ */
-.toast{position:fixed;bottom:28px;left:50%;
-  transform:translateX(-50%) translateY(16px);
-  background:#1a1a1a;color:#fff;padding:11px 20px;border-radius:100px;
-  font-size:13px;opacity:0;pointer-events:none;
-  transition:opacity 350ms,transform 350ms cubic-bezier(.34,1.56,.64,1);
-  z-index:9999;white-space:nowrap}
-.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Form grid */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-md) var(--sp-lg);margin-bottom:var(--sp-md);opacity:.3;pointer-events:none;transition:opacity .35s;}
+.form-grid.on{opacity:1;pointer-events:all;}
+.fg-label{display:block;font-family:var(--font-text);font-size:14px;font-weight:600;color:var(--ink-muted-80);margin-bottom:7px;letter-spacing:-0.224px;}
+.sel-wrap{position:relative;}
+.fg-select{width:100%;padding:10px 32px 10px 12px;border:1px solid var(--hairline);border-radius:var(--r-sm);font-family:var(--font-text);font-size:14px;color:var(--ink);background:var(--canvas);appearance:none;cursor:pointer;outline:none;transition:border-color .2s;letter-spacing:-0.224px;}
+.fg-select:focus{border-color:var(--primary-focus);outline:2px solid rgba(0,113,227,.15);outline-offset:1px;}
+.fg-select option[value=""]{color:var(--body-muted);}
+.sel-chev{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--ink-muted-48);}
+.fg-input{width:100%;padding:10px 12px;border:1px solid var(--hairline);border-radius:var(--r-sm);font-family:var(--font-text);font-size:14px;color:var(--ink);background:var(--canvas);outline:none;transition:border-color .2s;letter-spacing:-0.224px;}
+.fg-input:focus{border-color:var(--primary-focus);outline:2px solid rgba(0,113,227,.15);outline-offset:1px;}
+.fg-input::placeholder{color:var(--body-muted);}
 
-/* ══ SHARED TOP BAR ═══════════════════════════════════════ */
-.top-bar{padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;flex-shrink:0;min-height:52px;gap:0}
-.bar-title{font-size:14px;font-weight:700;color:var(--text)}
-.bar-sub{font-size:12px;color:var(--muted);margin-left:10px}
-/* breadcrumb */
-.bc-step{display:flex;align-items:center;gap:7px}
-.bc-conn{color:var(--muted);font-size:12px;margin:0 10px}
-.bc-icon{width:26px;height:26px;border-radius:50%;background:#f0ede8;
-  display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;
-  transition:background 400ms,color 400ms}
-.bc-step.act .bc-icon{background:var(--accent);color:#fff}
-.bc-step.done .bc-icon{background:#e6f4ea;color:#2d7a3a}
-.bc-info{display:flex;flex-direction:column}
-.bc-name{font-size:12px;font-weight:600;color:var(--muted);transition:color 400ms}
-.bc-step.act .bc-name{color:var(--text)}
-.bc-time{font-size:10px;color:var(--faint)}
+/* Multi-tag */
+.mtag{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;border:1px solid var(--hairline);border-radius:var(--r-sm);min-height:42px;cursor:pointer;position:relative;transition:border-color .2s;}
+.mtag:hover{border-color:var(--primary-focus);}
+.tag{display:flex;align-items:center;gap:3px;padding:3px 10px;background:#e0edff;border-radius:var(--r-pill);font-family:var(--font-text);font-size:12px;color:var(--primary);font-weight:600;letter-spacing:-0.12px;}
+.tag-x{cursor:pointer;font-size:11px;color:var(--primary);margin-left:2px;line-height:1;opacity:.7;}
+.tag-x:hover{opacity:1;}
+.mtag-add{display:flex;align-items:center;gap:3px;font-size:12px;color:var(--body-muted);padding:2px 4px;}
+.mtag-dropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:100;padding:6px;}
+.mtag-dropdown.show{display:block;}
+.mtag-opt{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--r-sm);cursor:pointer;font-family:var(--font-text);font-size:14px;color:var(--ink);letter-spacing:-0.224px;transition:background .15s;}
+.mtag-opt:hover{background:var(--canvas-parchment);}
+.mtag-opt input[type=checkbox]{accent-color:var(--primary);width:14px;height:14px;}
 
-/* ══ SHARED 3-PANEL ═══════════════════════════════════════ */
-.panels{display:flex;flex:1;overflow:hidden;min-height:0}
-.p-left{flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column}
-.p-center{flex:1;background:#1e1e1e;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #333}
-.p-content{flex:1;background:var(--panel);display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
-.p-right{flex-shrink:0;background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column}
-.p-head{padding:11px 15px 9px;font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.1em;color:var(--muted);border-bottom:1px solid #f0ede8;flex-shrink:0}
-.p-center .p-head{background:#252526;border-bottom-color:#3c3c3c;color:#777}
+/* Next btn — button-primary from DESIGN.md */
+.next-wrap{margin-bottom:var(--sp-md);}
+.next-btn{
+  width:100%;padding:11px 22px;
+  background:var(--primary);color:var(--canvas);
+  border:none;border-radius:var(--r-pill);
+  font-family:var(--font-text);font-size:17px;font-weight:400;
+  letter-spacing:-0.374px;
+  cursor:pointer;
+  opacity:.35;pointer-events:none;
+  transition:background .2s,opacity .3s,transform .15s;
+}
+.next-btn.on{opacity:1;pointer-events:all;}
+.next-btn.on:hover{background:var(--primary-focus);}
+.next-btn.on:active{transform:scale(.95);}
 
-/* ══ SHARED LOG FORMAT ════════════════════════════════════ */
-.log-list{flex:1;overflow-y:auto;padding:12px 15px;display:flex;flex-direction:column;gap:0}
-.log-user{background:#f0ede8;border-radius:8px;padding:8px 11px;
-  font-size:13px;font-weight:600;color:var(--text);
-  margin:8px 0 5px;line-height:1.4;animation:lfade 280ms ease}
-.log-user:first-child{margin-top:0}
-.log-item{display:flex;gap:9px;padding:3px 0;font-size:13px;
-  color:var(--text);line-height:1.55;animation:lfade 280ms ease}
-.log-bull{color:var(--muted);flex-shrink:0;line-height:1.55}
-.log-body{flex:1}
-.log-verb{font-weight:700}
-.log-file{font-family:var(--mono);font-size:12px;color:var(--muted)}
-.log-loading{display:flex;gap:7px;padding:4px 0;font-size:13px;color:var(--accent);animation:lfade 280ms ease}
-.lcursor{display:inline-block;animation:lcblink 1s step-end infinite}
-@keyframes lfade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
-@keyframes lcblink{0%,100%{opacity:1}50%{opacity:0}}
+/* Generated prompt box */
+.gen-prompt{
+  display:none;
+  background:var(--canvas-parchment);
+  border:1px solid var(--hairline);
+  border-radius:var(--r-lg);
+  padding:var(--sp-md);
+  font-family:var(--font-text);font-size:14px;color:var(--ink-muted-80);
+  line-height:1.7;margin-bottom:var(--sp-xs);
+  letter-spacing:-0.224px;
+}
+.gen-prompt.show{display:block;}
 
-/* ══ SHARED INPUT ════════════════════════════════════════ */
-.p-input{padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0}
-.p-input-inner{display:flex;align-items:center;border:1px solid var(--border);
-  border-radius:10px;background:#fff;padding:5px 5px 5px 13px;gap:6px}
-.p-inp{flex:1;border:none;background:transparent;padding:4px 0;
-  font-family:inherit;font-size:13px;color:var(--text);outline:none}
-.p-inp::placeholder{color:var(--faint)}
-.p-send{width:30px;height:30px;background:#f0ede8;border:none;border-radius:7px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;color:var(--muted);transition:all 140ms;flex-shrink:0}
-.p-send:hover{background:var(--accent);color:#fff}
+/* ════ SCREEN 3 — ANALYSIS ════ */
+#s3{flex-direction:row;}
+.s3-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.s3-scroll{flex:1;overflow-y:auto;padding:var(--sp-lg) 32px var(--sp-md);}
+.s3-h1{
+  font-family:var(--font-display);
+  font-size:28px;font-weight:600;
+  color:var(--ink);letter-spacing:-0.28px;
+  margin-bottom:var(--sp-md);
+}
 
-/* ══ SCREEN 2 — VOICE PANEL ══════════════════════════════ */
-.voice-panel{flex-shrink:0;padding:14px 15px;display:flex;flex-direction:column;gap:12px}
-.voice-instr{font-size:13px;color:var(--text);text-align:center;line-height:1.6}
-.mic-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0}
-.mic{width:64px;height:64px;background:var(--accent);border:none;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;position:relative;
-  transition:background 180ms,transform 180ms;flex-shrink:0}
-.mic:hover{background:var(--accent-h);transform:scale(1.04)}
-.mic svg{width:24px;height:24px;fill:#fff;position:relative;z-index:1}
-.mic.rec::before,.mic.rec::after{content:'';position:absolute;border-radius:50%;
-  border:2px solid var(--accent);opacity:0;animation:pring 1.5s cubic-bezier(.215,.61,.355,1) infinite}
-.mic.rec::after{animation-delay:.6s}
-@keyframes pring{0%{width:64px;height:64px;opacity:.7}100%{width:100px;height:100px;opacity:0}}
-.wave{display:flex;align-items:center;gap:4px;height:36px;opacity:0;transition:opacity 280ms}
-.wave.on{opacity:1}
-.wbar{width:4px;background:var(--accent);border-radius:2px;height:6px;transition:height 180ms ease;opacity:.75}
-.rec-timer{font-family:var(--mono);font-size:12px;color:var(--muted);display:none;align-items:center;gap:6px}
-.rdot{width:7px;height:7px;background:#e74c3c;border-radius:50%;animation:rblink 1s ease-in-out infinite;flex-shrink:0}
-@keyframes rblink{0%,100%{opacity:1}50%{opacity:.2}}
-.silence{background:#fff;border:1px solid var(--border);border-radius:10px;
-  padding:12px 14px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.08);display:none}
-.silence.on{display:block}
-.silence p{margin-bottom:9px;font-weight:500;color:var(--text)}
-.sil-btns{display:flex;gap:7px}
-.btn-ghost{padding:5px 11px;border:1px solid var(--border);border-radius:6px;
-  background:transparent;font-size:11px;color:var(--text);transition:all 140ms}
-.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
-.btn-sm{padding:5px 11px;background:var(--accent);border:none;border-radius:6px;
-  font-size:11px;color:#fff;font-weight:600;transition:background 140ms}
-.btn-sm:hover{background:var(--accent-h)}
-.divider{border:none;border-top:1px solid #f0ede8}
-.txt-toggle{font-size:11px;color:var(--muted);text-decoration:underline;
-  cursor:pointer;text-align:center;display:block;background:none;border:none;width:100%;padding:2px 0}
-.txt-area{display:none}
-.txt-area.on{display:block}
-.txt-area textarea{width:100%;border:1px solid var(--border);border-radius:8px;
-  padding:9px 11px;font-family:inherit;font-size:12px;resize:vertical;
-  min-height:72px;outline:none;color:var(--text);margin-bottom:8px}
-.txt-area textarea:focus{border-color:var(--accent)}
-.btn-done-full{width:100%;padding:9px;background:var(--accent);color:#fff;border:none;
-  border-radius:8px;font-size:12px;font-weight:600;transition:background 140ms}
-.btn-done-full:hover{background:var(--accent-h)}
-.ai-hint{font-size:12px;color:var(--faint);text-align:center;margin:16px 0;line-height:1.7}
-/* Compact voice row inside AI 어시스턴트 left panel */
-.vc-wrap{padding:10px 15px 8px;flex-shrink:0}
-.vc-row{display:flex;align-items:center;gap:10px}
-.mic-sm{width:34px!important;height:34px!important;min-width:34px;flex-shrink:0}
-.vc-info{flex:1;min-width:0}
-.vc-title{font-size:11px;font-weight:700;color:var(--text);line-height:1.3}
-.vc-sub{font-size:10px;color:var(--muted);line-height:1.3}
-.wave-sm{flex:1;display:none;height:24px;align-items:center;gap:2px;margin:0}
-.wave-sm.on{display:flex}
-.wave-sm .wbar{width:2.5px;height:3px;background:var(--accent);border-radius:2px}
-.vc-timer{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;display:none}
-.vc-timer.on{display:block}
+.a-row{display:flex;align-items:flex-start;gap:var(--sp-md);padding:13px 0;border-bottom:1px solid var(--divider-soft);}
+.a-row:last-of-type{border-bottom:none;}
+.a-label{width:100px;flex-shrink:0;font-family:var(--font-text);font-size:14px;color:var(--ink-muted-48);padding-top:1px;letter-spacing:-0.224px;}
+.a-val{flex:1;font-family:var(--font-text);font-size:14px;color:var(--ink);line-height:1.47;letter-spacing:-0.374px;}
+/* button-pearl-capsule from DESIGN.md */
+.a-edit{
+  padding:8px 14px;
+  border:1px solid var(--divider-soft);
+  border-radius:var(--r-md);
+  background:var(--surface-pearl);
+  font-family:var(--font-text);font-size:12px;color:var(--ink-muted-80);
+  cursor:pointer;white-space:nowrap;flex-shrink:0;
+  transition:background .15s,transform .15s;
+  letter-spacing:-0.12px;
+}
+.a-edit:hover{background:var(--canvas-parchment);}
+.a-edit:active{transform:scale(.95);}
 
-/* ══ SCREEN 2 — CONTENT PANEL ════════════════════════════ */
-.content-area{flex:1;overflow-y:auto;padding:18px}
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  height:100%;gap:12px;color:var(--faint);text-align:center;padding:20px}
-.empty-icon{font-size:32px;opacity:.4}
-.empty-state p{font-size:12px;line-height:1.7;max-width:240px}
-.struct-block{display:none}
-.struct-block.on{display:block}
-.struct-label{font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.1em;color:var(--muted);margin-bottom:12px}
-.srow{display:flex;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f0ede8;gap:10px}
-.srow:last-child{border-bottom:none}
-.slabel{font-size:11px;color:var(--muted);width:58px;flex-shrink:0;padding-top:1px}
-.sval{flex:1;font-size:13px;color:var(--text)}
-.sval input{width:100%;border:1px solid var(--accent);border-radius:4px;
-  padding:3px 6px;font-family:inherit;font-size:13px;color:var(--text);outline:none}
-.sedit{font-size:11px;color:var(--muted);border:1px solid var(--border);
-  border-radius:4px;padding:2px 8px;background:transparent;flex-shrink:0;transition:all 140ms}
-.sedit:hover{border-color:var(--accent);color:var(--accent)}
-.ref-block{display:none;margin-top:20px}
-.ref-block.on{display:block}
-.fw-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
-.fw-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:18px}
-.fw-box{background:#f0ede8;border:1px solid var(--border);border-radius:8px;
-  padding:6px 10px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap}
-.fw-i{width:14px;height:14px;background:var(--muted);border-radius:50%;
-  display:inline-flex;align-items:center;justify-content:center;font-size:8px;
-  color:#fff;cursor:default;position:relative;font-style:normal;flex-shrink:0}
-.fw-tip{position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
-  background:#1a1a1a;color:#fff;font-size:11px;padding:5px 9px;border-radius:6px;
-  white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 160ms;z-index:100}
-.fw-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
-  border:5px solid transparent;border-top-color:#1a1a1a}
-.fw-i:hover .fw-tip{opacity:1}
-.fw-arr{color:var(--muted);font-size:12px}
-.cta-row{border-top:1px solid #f0ede8;padding-top:16px}
-.cta-full{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;
-  border-radius:8px;font-weight:600;font-size:14px;transition:background 180ms}
-.cta-full:hover{background:var(--accent-h)}
+.fw-section{margin-top:var(--sp-lg);margin-bottom:var(--sp-lg);}
+.fw-title{
+  font-family:var(--font-display);
+  font-size:21px;font-weight:600;
+  color:var(--ink);margin-bottom:var(--sp-sm);
+  letter-spacing:0.231px;line-height:1.19;
+}
+.fw-row{display:flex;align-items:center;}
+/* store-utility-card style chips */
+.fw-chip{
+  padding:8px 18px;
+  border:1px solid var(--hairline);
+  border-radius:var(--r-lg);
+  font-family:var(--font-text);font-size:14px;font-weight:600;
+  color:var(--ink-muted-80);background:var(--canvas);
+  letter-spacing:-0.224px;
+}
+.fw-line{height:1px;width:36px;background:var(--hairline);}
 
-/* ══ SCREEN 2 — REF GRID (event page variations) ══════════ */
-.ref-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
-.ref-grid-item{border:1.5px solid var(--border);border-radius:10px;overflow:hidden;
-  cursor:pointer;transition:all 180ms}
-.ref-grid-item:hover{border-color:#c9a99a}
-.ref-grid-item.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(201,75,42,.15)}
-.ref-mock{width:100%;height:190px;overflow:hidden;position:relative;flex-shrink:0}
+.s3-btns{display:flex;gap:var(--sp-sm);margin-bottom:4px;}
+/* button-dark-utility (gray) */
+.btn-gray-pill{
+  flex:1;padding:11px 22px;
+  background:var(--ink-muted-48);color:var(--canvas);
+  border:none;border-radius:var(--r-pill);
+  font-family:var(--font-text);font-size:17px;font-weight:400;
+  letter-spacing:-0.374px;
+  cursor:pointer;transition:background .2s,transform .15s;
+}
+.btn-gray-pill:hover{background:var(--ink-muted-80);}
+.btn-gray-pill:active{transform:scale(.95);}
+/* button-primary (blue) */
+.btn-blue-pill{
+  flex:1;padding:11px 22px;
+  background:var(--primary);color:var(--canvas);
+  border:none;border-radius:var(--r-pill);
+  font-family:var(--font-text);font-size:17px;font-weight:400;
+  letter-spacing:-0.374px;
+  cursor:pointer;transition:background .2s,transform .15s;
+}
+.btn-blue-pill:hover{background:var(--primary-focus);}
+.btn-blue-pill:active{transform:scale(.95);}
 
-/* ── Shared event mock base ── */
-.rev{width:100%;height:100%;display:flex;flex-direction:column;
-  align-items:center;padding:8px 7px 7px;gap:0;position:relative}
+/* Right panel */
+.s3-panel{width:300px;min-width:300px;border-left:1px solid var(--hairline);background:var(--canvas-parchment);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:24px 0;}
 
-/* ── Var A: 민트/라벤더 (원본 스타일) ── */
-.rev-a{background:linear-gradient(160deg,#c2f0e8 0%,#cbbdf8 50%,#e8c4f8 75%,#b4e8f8 100%)}
-/* ── Var B: 코랄/피치 (웜 컬러) ── */
-.rev-b{background:linear-gradient(160deg,#ffd6c0 0%,#f8b4cc 50%,#f0c8f0 75%,#ffc8a8 100%)}
-/* ── Var C: 딥 네이비/일렉트릭 (다크 버전) ── */
-.rev-c{background:linear-gradient(160deg,#0e1a38 0%,#1a0e38 50%,#0e2240 100%)}
-
-.rev-date{font-size:6px;font-weight:500;align-self:flex-end;margin-bottom:2px}
-.rev-date-ab{color:#5a5a7a}  .rev-date-c{color:rgba(255,255,255,.5)}
-
-.rev-off-badge{font-size:7.5px;font-weight:800;padding:2px 8px;border-radius:100px;
-  align-self:flex-start;margin-bottom:2px;letter-spacing:-.2px}
-.rev-off-a{background:#c4aef8;color:#2a1a5a}
-.rev-off-b{background:#f8a0b8;color:#5a0020}
-.rev-off-c{background:#3a4fff;color:#c0d0ff}
-
-.rev-title{font-weight:900;text-align:center;line-height:1.0;letter-spacing:-1px;margin-bottom:1px}
-.rev-title-ab{font-size:26px;color:#111128}
-.rev-title-c{font-size:26px;color:#ffffff}
-
-.rev-badges{display:flex;gap:4px;align-self:flex-end;margin-bottom:4px}
-.rev-b-pill{font-size:5.5px;font-weight:700;padding:2px 5px;border-radius:100px}
-.rev-wk-a{background:#7dd8ec;color:#fff}  .rev-wk-b{background:#f09060;color:#fff}  .rev-wk-c{background:#00d4ff;color:#001a2e}
-.rev-sale-a{background:#e8b0f4;color:#5a1a7a}.rev-sale-b{background:#f87090;color:#fff}.rev-sale-c{background:#ff40a0;color:#fff}
-
-.rev-desc{font-size:6px;line-height:1.4;text-align:center;margin-bottom:4px}
-.rev-desc-ab{color:#444460}  .rev-desc-c{color:rgba(255,255,255,.55)}
-
-/* coupon card */
-.rev-coupon{border-radius:6px;width:100%;padding:5px 8px;text-align:center;
-  margin-bottom:4px;position:relative}
-.rev-coupon-a{background:linear-gradient(135deg,#96b8f8 0%,#b0a0f8 50%,#c89af8 100%)}
-.rev-coupon-b{background:linear-gradient(135deg,#f8a070 0%,#f870a0 50%,#e050d0 100%)}
-.rev-coupon-c{background:linear-gradient(135deg,#1050ff 0%,#5030d0 50%,#8010c0 100%)}
-.rev-coupon::before,.rev-coupon::after{content:'';position:absolute;
-  width:8px;height:8px;border-radius:50%;top:50%;transform:translateY(-50%)}
-.rev-coupon-a::before,.rev-coupon-a::after{background:linear-gradient(160deg,#c2f0e8,#cbbdf8)}
-.rev-coupon-b::before,.rev-coupon-b::after{background:linear-gradient(160deg,#ffd6c0,#f8b4cc)}
-.rev-coupon-c::before,.rev-coupon-c::after{background:linear-gradient(160deg,#0e1a38,#1a0e38)}
-.rev-coupon::before{left:-4px}  .rev-coupon::after{right:-4px}
-.rev-cpn-label{font-size:5.5px;color:rgba(255,255,255,.85);margin-bottom:1px}
-.rev-cpn-val{font-size:14px;font-weight:900;color:#fff;line-height:1}
-.rev-cpn-code{font-size:5px;color:rgba(255,255,255,.65);margin-top:2px;letter-spacing:.08em}
-
-/* CTA */
-.rev-cta{font-size:6.5px;font-weight:700;padding:5px 0;border-radius:4px;
-  width:100%;text-align:center}
-.rev-cta-a{background:#111128;color:#fff}
-.rev-cta-b{background:#2a0010;color:#fff}
-.rev-cta-c{background:#00d4ff;color:#001a2e}
-
-.rev-star{position:absolute;font-size:7px;opacity:.5;pointer-events:none}
-
-.ref-grid-info{padding:7px 10px;border-top:1px solid #f0ede8}
-.ref-grid-name{font-size:11px;font-weight:600;color:var(--text)}
-.ref-grid-desc{font-size:10px;color:var(--muted);margin-top:1px}
-
-/* ══ SCREEN 3 — CODE VIEW ═════════════════════════════════ */
-.code-view{flex:1;overflow:auto;padding:14px 16px}
-.code-view pre{font-family:var(--mono);font-size:12.5px;line-height:1.8;color:#d4d4d4}
-.cl{display:flex;align-items:center;border-radius:3px;transition:background 200ms}
-.cl.hl{background:rgba(255,200,0,.18)}
-.lnum{width:30px;text-align:right;color:#555;margin-right:14px;user-select:none;font-size:11px;flex-shrink:0}
-.tk-tag{color:#569cd6}.tk-attr{color:#9cdcfe}.tk-val{color:#ce9178}
-.tk-comment{color:#6a9955}.tk-doc{color:#808080}
-
-/* ══ SCREEN 3 — TASK LIST ═════════════════════════════════ */
-.task-list{padding:8px 0;flex-shrink:0}
-.task{display:flex;align-items:flex-start;gap:9px;padding:8px 15px}
-.t-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px}
-.t-done{background:#e6f4ea;color:#2d7a3a}
-.t-run{background:#e8f0fe;color:#1a56db}
-.t-wait{background:#f0f0f0;color:#888}
-.t-name{font-size:12px;color:var(--text);margin-bottom:3px}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:500}
-.b-done{background:#e6f4ea;color:#2d7a3a}
-.b-run{background:#e8f0fe;color:#1a56db}
-.b-wait{background:#f0f0f0;color:#888}
-.pdot{width:6px;height:6px;background:#1a56db;border-radius:50%;
-  animation:pdot 1s ease-in-out infinite;flex-shrink:0}
-@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* Left panel log sub-section */
-.log-section-divider{border:none;border-top:1px solid var(--border);flex-shrink:0}
-.log-section-head{padding:9px 15px 7px;font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.1em;color:var(--muted);flex-shrink:0}
-
-/* ══ SCREEN 3 — UI PREVIEW (right panel) ═════════════════ */
-.preview-area{flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:12px;background:#f0ede8;padding:16px;overflow:hidden}
-.phone-outer{width:200px;background:#e0dcd8;border-radius:24px;overflow:hidden;
-  box-shadow:0 10px 40px rgba(0,0,0,.25),0 0 0 2px rgba(0,0,0,.06);flex-shrink:0}
-.phone-notch{width:52px;height:5px;background:rgba(0,0,0,.12);
-  border-radius:3px;margin:8px auto 4px}
-/* Phone screen = gradient BG matching reference image */
+/* ── Phone Frame ── */
+.phone-frame{
+  width:218px;
+  background:#1d1d1f;
+  border-radius:38px;
+  padding:9px;
+  /* DESIGN.md product shadow */
+  box-shadow:rgba(0,0,0,.22) 3px 5px 30px 0, inset 0 0 0 1px rgba(255,255,255,.06);
+  flex-shrink:0;
+}
 .phone-screen{
-  background:linear-gradient(160deg,#b8eee4 0%,#c8b8f8 45%,#e4c0f8 70%,#a8d8f8 100%);
-  height:435px;padding:0;display:flex;flex-direction:column;align-items:stretch;
-  overflow:hidden;position:relative}
-
-/* Event page inside phone */
-.mep-wrap{padding:8px 9px 10px;display:flex;flex-direction:column;
-  align-items:center;gap:0;position:relative;height:100%;box-sizing:border-box}
-.mep-date{font-size:6.5px;color:#445;font-weight:600;align-self:flex-end;margin-bottom:3px}
-.mep-row1{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:2px}
-.mep-off-badge{background:#c8b0f8;color:#2a1060;font-size:8px;font-weight:800;
-  padding:3px 9px;border-radius:100px;letter-spacing:-.3px}
-.mep-smiley{font-size:10px}
-.mep-title{font-size:38px;font-weight:900;color:#0d0d28;line-height:1.0;
-  text-align:center;letter-spacing:-2px;width:100%}
-.mep-row2{display:flex;align-items:center;justify-content:space-between;
-  width:100%;margin-bottom:3px}
-.mep-weekend{background:#7cd4e8;color:#fff;font-size:6px;font-weight:800;
-  padding:2px 7px;border-radius:100px;letter-spacing:.05em}
-.mep-sale{background:#e8b0f4;color:#4a0060;font-size:6px;font-weight:700;
-  padding:2px 7px;border-radius:100px;font-style:italic}
-.mep-desc{font-size:7px;color:#334;line-height:1.5;text-align:center;margin-bottom:5px}
-/* sparkle decorations */
-.mep-spark{position:absolute;font-size:8px;color:#6060a0;opacity:.5;pointer-events:none}
-
-/* Coupon card */
-/* ── Coupon card (no envelope) ── */
-.mep-env-wrap{width:136px;margin:12px auto 10px;position:relative}
-.mep-env-card{
   width:100%;
-  background:linear-gradient(145deg,#d0f8b0 0%,#7adc5c 38%,#3cc040 72%,#24a030 100%);
-  border-radius:20px;padding:24px 0 26px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  box-shadow:0 10px 36px rgba(36,150,36,.5),inset 0 1px 0 rgba(255,255,255,.42);
-  position:relative}
-.mep-env-card::after{content:'✦';position:absolute;top:11px;right:15px;
-  font-size:10px;color:rgba(255,255,255,.6)}
-.mep-env-cpn-label{font-size:10px;font-weight:800;color:rgba(10,60,10,.55);
-  letter-spacing:.18em;margin-bottom:2px}
-.mep-env-cpn-val{font-size:46px;font-weight:900;color:#fff;line-height:1;
-  letter-spacing:-2px;text-shadow:0 3px 12px rgba(20,110,20,.35)}
-.mep-env-cpn-unit{font-size:14px;font-weight:800;color:rgba(255,255,255,.88);
-  letter-spacing:.06em;margin-top:-2px}
+  background:#fff;
+  border-radius:30px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  height:440px;
+}
 
-.mep-badges{display:flex;gap:4px;margin-bottom:5px}
-.mep-b-pill{font-size:6.5px;font-weight:700;padding:2px 7px;border-radius:100px}
-.mep-b-white{background:rgba(255,255,255,.5);color:#333}
-.mep-b-purple{background:#7c5cbf;color:#fff}
+/* ── Preview Status Bar ── */
+.pv-statusbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 14px 4px;
+  background:var(--pv-header, #fff);
+  flex-shrink:0;
+}
+.pv-time{font-size:9px;font-weight:700;color:var(--pv-ink,#1d1d1f);letter-spacing:-0.1px;}
+.pv-icons{display:flex;gap:3px;align-items:center;}
 
-/* CTA button — pinned to bottom */
-.mep-spacer{flex:1}
-.mep-cta{background:#0d0d28;color:#fff;font-size:8px;font-weight:700;
-  padding:11px 0;border-radius:6px;border:none;width:100%;text-align:center;
-  margin-bottom:5px;cursor:default;display:flex;align-items:center;
-  justify-content:center;gap:5px}
-.mep-disclaimer{font-size:5.5px;color:#668;text-align:center;line-height:1.4}
+/* ── Preview Nav ── */
+.pv-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:2px 12px 8px;
+  background:var(--pv-header,#fff);
+  border-bottom:0.5px solid var(--pv-border,#e0e0e0);
+  flex-shrink:0;
+}
+.pv-nav-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--pv-ink,#1d1d1f);letter-spacing:-0.3px;}
+.pv-nav-ico{font-size:13px;}
 
-/* ── Build-in reveal animation ── */
-.mep-anim{opacity:0}
-@keyframes mepReveal{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
-.mep-anim.mep-show{animation:mepReveal 0.55s ease forwards}
-/* Card also floats after revealing */
-@keyframes envFloat{0%,100%{transform:translateY(0)}42%{transform:translateY(-9px)}65%{transform:translateY(-4px)}}
-.mep-env-wrap.mep-anim.mep-show{
-  animation:mepReveal 0.55s ease forwards,envFloat 1.2s ease-in-out 0.65s infinite}
+/* ── Preview Scroll Area ── */
+.pv-scroll{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px;background:var(--pv-bg,#fff);}
+.pv-scroll::-webkit-scrollbar{display:none;}
 
-.preview-dim{font-size:10px;color:var(--muted);font-family:var(--mono)}
-.preview-note{font-size:10px;color:var(--faint);text-align:center;line-height:1.5;max-width:150px}
+/* ── Preview Components ── */
+.pv-greeting{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--pv-ink,#1d1d1f);letter-spacing:-0.25px;padding:2px 0 4px;}
+.pv-sub{font-family:var(--font-text);font-size:8px;color:var(--pv-muted,#7a7a7a);margin-top:1px;letter-spacing:-0.1px;}
+
+/* Search — rounded pill like DESIGN.md search-input */
+.pv-search{
+  display:flex;align-items:center;gap:5px;
+  padding:7px 10px;
+  background:var(--pv-surface,#f5f5f7);
+  border-radius:9999px;
+  border:0.5px solid var(--pv-border,#e0e0e0);
+}
+.pv-search-txt{font-family:var(--font-text);font-size:9px;color:var(--pv-muted,#7a7a7a);letter-spacing:-0.1px;}
+
+/* Metrics grid — store-utility-card style */
+.pv-metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.pv-card{
+  padding:9px 10px;
+  background:var(--pv-card,#fff);
+  border:0.5px solid var(--pv-border,#e0e0e0);
+  border-radius:10px;
+}
+.pv-card-ico{font-size:13px;margin-bottom:4px;}
+.pv-card-val{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--pv-ink,#1d1d1f);letter-spacing:-0.35px;line-height:1;}
+.pv-card-lbl{font-family:var(--font-text);font-size:7px;color:var(--pv-muted,#7a7a7a);margin-top:2px;letter-spacing:-0.05px;}
+
+/* Feature item row */
+.pv-feat-row{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 10px;
+  background:var(--pv-card,#fff);
+  border:0.5px solid var(--pv-border,#e0e0e0);
+  border-radius:10px;
+}
+.pv-feat-ico{font-size:13px;flex-shrink:0;}
+.pv-feat-info{flex:1;}
+.pv-feat-name{font-family:var(--font-text);font-size:10px;font-weight:600;color:var(--pv-ink,#1d1d1f);letter-spacing:-0.15px;}
+.pv-feat-desc{font-family:var(--font-text);font-size:7px;color:var(--pv-muted,#7a7a7a);margin-top:1px;}
+.pv-feat-chev{font-size:9px;color:var(--pv-muted,#7a7a7a);}
+
+/* Buttons — DESIGN.md button-primary / button-dark */
+.pv-btn{
+  width:100%;padding:9px;
+  border:none;border-radius:9999px;
+  font-family:var(--font-text);font-size:11px;font-weight:600;
+  letter-spacing:-0.15px;text-align:center;cursor:default;
+}
+.pv-btn-blue{background:var(--primary);color:#fff;}
+.pv-btn-dark{background:var(--pv-ink,#1d1d1f);color:#fff;}
+.pv-btn-outline{background:transparent;color:var(--primary);border:1px solid var(--primary);}
+
+/* Divider */
+.pv-divider{height:0.5px;background:var(--pv-border,#e0e0e0);margin:2px 0;}
+
+/* ── Tone variants via CSS vars on .phone-screen ── */
+.phone-screen[data-tone="bold"]{--pv-header:#1d1d1f;--pv-bg:#f5f5f7;--pv-card:#fff;--pv-ink:#1d1d1f;--pv-muted:#7a7a7a;--pv-border:#e0e0e0;--pv-surface:#e8e8e8;}
+.phone-screen[data-tone="bold"] .pv-nav-title{color:#fff;}
+.phone-screen[data-tone="bold"] .pv-time{color:#fff;}
+.phone-screen[data-tone="playful"]{--pv-header:#e8f0fe;--pv-bg:#f0f7ff;--pv-card:#fff;--pv-ink:#1d1d1f;--pv-muted:#6b7aae;--pv-border:#c5d8f7;--pv-surface:#dceeff;}
+.phone-screen[data-tone="corporate"]{--pv-header:#f2f2f4;--pv-bg:#f8f9fb;--pv-card:#fff;--pv-ink:#1d1d1f;--pv-muted:#5a5c6a;--pv-border:#d4d6dc;--pv-surface:#eaeaed;}
+
+/* ════ SCREEN 4 — LOADING ════ */
+#s4{align-items:center;justify-content:center;gap:var(--sp-xl);background:var(--canvas-parchment);}
+.load-img{width:280px;height:200px;background:var(--canvas);border-radius:var(--r-lg);border:1px solid var(--hairline);display:flex;align-items:center;justify-content:center;}
+.load-content{display:flex;flex-direction:column;align-items:center;gap:var(--sp-md);width:360px;}
+.load-prog-wrap{width:100%;height:4px;background:var(--hairline);border-radius:var(--r-pill);overflow:hidden;}
+.load-prog-bar{height:100%;background:var(--primary);border-radius:var(--r-pill);width:0%;transition:width .25s ease;}
+.load-txt{
+  font-family:var(--font-display);
+  font-size:21px;color:var(--ink-muted-48);
+  font-weight:400;letter-spacing:0.196px;
+}
 </style>
 </head>
 <body>
+<div class="app">
 
-<!-- ══════════════════ SCREEN 1 ══════════════════ -->
-<div id="s1" class="screen active">
-  <div class="bg-blur">
-    <div class="bg-side">
-      <div class="bg-logo"><div class="bg-logo-mark"></div>Claude Code</div>
-      <div class="bg-file"></div><div class="bg-file" style="width:72%"></div>
-      <div class="bg-file" style="width:85%"></div><div class="bg-file" style="width:60%"></div>
-      <div class="bg-file" style="width:90%;margin-top:14px"></div>
-      <div class="bg-file" style="width:65%"></div>
-    </div>
-    <div class="bg-main">
-      <div class="bg-block" style="height:90px"></div>
-      <div class="bg-block" style="height:150px"></div>
-      <div class="bg-block" style="height:44px;margin-top:auto"></div>
-    </div>
+<!-- ════ SIDEBAR ════ -->
+<aside class="sidebar">
+  <div class="sb-icons">
+    <button class="sb-icon" title="Monitor">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="2" width="14" height="9" rx="1.5"/><path d="M5 13h6M8 11v2"/></svg>
+    </button>
+    <button class="sb-icon" title="Search">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="5"/><path d="m10.5 10.5 3 3"/></svg>
+    </button>
   </div>
-  <div class="overlay">
-    <div class="modal">
-      <h2>개발 배경 지식이<br>어느 정도인가요?</h2>
-      <p class="sub">처음 사용하는 분들께만 보이는 안내예요.</p>
-      <div class="lvl-cards">
-        <div class="lvl" data-lv="상" onclick="pickLevel(this)">
-          <div class="lvl-name">상</div>
-          <div class="lvl-desc">코드를 자유롭게 읽고 수정할 수 있어요.</div>
-          <div class="lvl-check"></div>
-        </div>
-        <div class="lvl" data-lv="중" onclick="pickLevel(this)">
-          <div class="lvl-name">중</div>
-          <div class="lvl-desc">간단한 코드는 이해하지만 작성은 어려워요.</div>
-          <div class="lvl-check"></div>
-        </div>
-        <div class="lvl" data-lv="하" onclick="pickLevel(this)">
-          <div class="lvl-name">하</div>
-          <div class="lvl-desc">코드를 한 번도 작성해본 적 없거나 초보자 수준이에요.</div>
-          <div class="lvl-check"></div>
-        </div>
+
+  <div class="sb-tabs">
+    <button class="sb-tab">Chat</button>
+    <button class="sb-tab">Work</button>
+    <button class="sb-tab active">Code</button>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="sb-nav-item">
+      <span class="sb-nav-icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 1v12M1 7h12"/></svg>
+      </span>
+      New session
+    </div>
+    <div class="sb-nav-item">
+      <span class="sb-nav-icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M7 0L8.8 5.2H14L9.6 8.4L11.4 13.6L7 10.4L2.6 13.6L4.4 8.4L0 5.2H5.2Z"/></svg>
+      </span>
+      Routines
+    </div>
+    <div class="sb-nav-item">
+      <span class="sb-nav-icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="6"/><path d="M7 1v12M1 7h12M3.1 3.1l7.8 7.8M10.9 3.1L3.1 10.9"/></svg>
+      </span>
+      Customize
+    </div>
+    <div class="sb-nav-item" style="color:#bbb">
+      <span class="sb-nav-icon" style="color:#bbb">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4l4 4 4-4"/></svg>
+      </span>
+      More
+    </div>
+  </nav>
+
+  <div class="sb-recents">
+    <div class="sb-recents-header">
+      <span class="sb-recents-title">Recents</span>
+      <button class="sb-gear">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="6.5" cy="6.5" r="2"/><path d="M6.5 0v2M6.5 11v2M0 6.5h2M11 6.5h2M1.7 1.7l1.4 1.4M9.9 9.9l1.4 1.4M1.7 11.3l1.4-1.4M9.9 3.1l1.4-1.4"/></svg>
+      </button>
+    </div>
+    <div class="sb-recent"><div class="sb-dot yellow"></div><span class="sb-recent-text">Build interactive Claude Code UI pro...</span></div>
+    <div class="sb-recent"><div class="sb-dot gray"></div><span class="sb-recent-text">Remove icons from design layout</span></div>
+    <div class="sb-recent"><div class="sb-dot gray"></div><span class="sb-recent-text">Create interactive prototype</span></div>
+    <div class="sb-recent"><div class="sb-dot gray"></div><span class="sb-recent-text">Split markdown files into smaller chu...</span></div>
+  </div>
+
+  <div class="sb-bottom" id="sbBottom">
+    텍스트를 입력해 전체 맥락을 수정할 수 있어요.
+  </div>
+</aside>
+
+<!-- ════ MAIN ════ -->
+<main class="main">
+
+  <!-- SCREEN 1: HOME -->
+  <div class="screen active" id="s1">
+    <div class="s1-body">
+      <div class="s1-welcome">어서오세요! 오늘은 무엇을 만드실 건가요?</div>
+      <button class="s1-cta" id="openFormBtn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 7h12M4 4l-3 3 3 3M10 4l3 3-3 3"/></svg>
+        &lt; &gt;&nbsp; 결과물 쉽게 만들기
+      </button>
+    </div>
+    <div class="bot-bar">
+      <div class="bot-pills">
+        <button class="bot-pill">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="1" width="9" height="7" rx="1.2"/><path d="M3.5 9.5h4M5.5 8v1.5"/></svg>
+          Desktop
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 3.5l3 3 3-3"/></svg>
+        </button>
+        <button class="bot-pill">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="2" width="9" height="7" rx="1.2"/><path d="M3 5h5M3 7h3"/></svg>
+          로컬에서 작업
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 3.5l3 3 3-3"/></svg>
+        </button>
+        <button class="bot-pill">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M5.5 1a4.5 4.5 0 0 1 0 9 4.5 4.5 0 0 1 0-9Z"/><path d="M1 5.5h9M5.5 1c-1.5 1.2-2.4 2.8-2.4 4.5s.9 3.3 2.4 4.5M5.5 1c1.5 1.2 2.4 2.8 2.4 4.5S7 9.3 5.5 10.5"/></svg>
+          Main
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 3.5l3 3 3-3"/></svg>
+        </button>
       </div>
-      <button class="cta" id="s1cta" disabled onclick="toS2()">작업 시작하기</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ SCREEN 2 ══════════════════ -->
-<div id="s2" class="screen">
-  <!-- Top bar — NO step pill -->
-  <div class="top-bar">
-    <span class="bar-title">프로젝트 설정</span>
-    <span class="bar-sub">아이디어를 구조화해요</span>
-  </div>
-
-  <div class="panels">
-    <!-- LEFT — AI 어시스턴트 (Screen 3 스타일과 동일) -->
-    <div class="p-left" style="width:300px">
-      <div class="p-head">AI 어시스턴트</div>
-      <!-- 음성 입력 (이전 크기 그대로) -->
-      <div class="voice-panel">
-        <p class="voice-instr">만들고 싶은 페이지를<br>말로 설명해주세요.</p>
-        <div class="mic-wrap">
-          <button class="mic" id="micBtn" onclick="toggleMic()">
-            <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm5 9.9c0 2.66-2.24 4.74-5 4.74S7 13.56 7 10.9H5c0 3.41 2.72 6.23 6 6.72V20H9v2h6v-2h-2v-2.38c3.28-.48 6-3.3 6-6.72h-2z"/></svg>
+      <div class="bot-input-box">
+        <textarea class="bot-textarea" rows="1" placeholder="무엇이든 물어보세요. @(으)로 플러그인을 사용하거나 파일을 언급하세요."></textarea>
+        <div class="bot-actions">
+          <button class="ba-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="5"/><path d="M6 4v4M4 6h4"/></svg></button>
+          <button class="ba-text">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3" width="9" height="7" rx="1.5"/><circle cx="3.5" cy="5.5" r="1.3"/><path d="M6 5.5h3M6 7.5h3"/></svg>
+            <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 3.5l3 3 3-3"/></svg>
           </button>
-          <div class="wave" id="wave">
-            <div class="wbar" id="wb0"></div><div class="wbar" id="wb1"></div>
-            <div class="wbar" id="wb2"></div><div class="wbar" id="wb3"></div>
-            <div class="wbar" id="wb4"></div><div class="wbar" id="wb5"></div>
-            <div class="wbar" id="wb6"></div>
-          </div>
-          <div class="rec-timer" id="recTimer"><div class="rdot"></div><span id="timerTxt">00:00</span></div>
-        </div>
-        <div class="silence" id="silenceBox">
-          <p>더 하실 말씀이 있나요?</p>
-          <div class="sil-btns">
-            <button class="btn-ghost" onclick="silContinue()">계속하기</button>
-            <button class="btn-sm" onclick="silDone()">완료</button>
-          </div>
-        </div>
-      </div>
-      <hr class="log-section-divider">
-      <div class="log-section-head">대화 로그</div>
-      <div class="log-list" id="s2Log">
-        <p class="ai-hint">마이크를 켜면 AI가<br>실시간으로 분석해요.</p>
-      </div>
-      <div class="p-input">
-        <div class="p-input-inner">
-          <input class="p-inp" id="s2Inp" placeholder="Reply to Claude..."
-            onkeydown="if(event.key==='Enter'&&!event.isComposing)sendS2()">
-          <button class="p-send" onclick="sendS2()">↑</button>
+          <div class="ba-spacer"></div>
+          <button class="ba-text">5.5 중간 <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 3.5l3 3 3-3"/></svg></button>
+          <button class="ba-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="1" width="4" height="6" rx="2"/><path d="M2 7a4 4 0 0 0 8 0M6 11V9"/></svg></button>
+          <button class="ba-send"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 10V2M2 6l4-4 4 4"/></svg></button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- CENTER — Analysis + Ref (우측 패널 제거됨) -->
-    <div class="p-content">
-      <div class="p-head">요구사항 분석</div>
-      <div class="content-area" id="contentArea">
-        <div class="empty-state" id="emptyState">
-          <div class="empty-icon">🎙️</div>
-          <p>왼쪽 AI 어시스턴트에서<br>마이크 버튼을 눌러 아이디어를 설명해주세요.<br>자동으로 구조화해드려요.</p>
+  <!-- SCREEN 2: FORM -->
+  <div class="screen" id="s2">
+    <div class="top-bar">
+      <button class="back-circle" id="back2">&#8592;</button>
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-num on" id="sn1">1</div>
+          <span class="step-txt on" id="sl1">내용 입력</span>
         </div>
-        <div class="struct-block" id="structBlock">
-          <div class="struct-label">이렇게 이해했어요</div>
-          <div class="srow"><div class="slabel">목적</div><div class="sval" id="sv0">앱 할인 프로모션 이벤트 페이지</div><button class="sedit" onclick="editRow(0)">편집</button></div>
-          <div class="srow"><div class="slabel">타겟</div><div class="sval" id="sv1">모바일 웹 사용자 (375px)</div><button class="sedit" onclick="editRow(1)">편집</button></div>
-          <div class="srow"><div class="slabel">구성 요소</div><div class="sval" id="sv2">쿠폰 플로팅 애니메이션 섹션, CTA 버튼, 쿠폰 이동 링크</div><button class="sedit" onclick="editRow(2)">편집</button></div>
-          <div class="srow"><div class="slabel">기능</div><div class="sval" id="sv3">쿠폰 수령 → 구매 페이지 이동</div><button class="sedit" onclick="editRow(3)">편집</button></div>
-          <div class="srow"><div class="slabel">배포 방식</div><div class="sval" id="sv4">정적 HTML 배포 (GitHub Pages)</div><button class="sedit" onclick="editRow(4)">편집</button></div>
+        <div class="step-line"></div>
+        <div class="step-item">
+          <div class="step-num" id="sn2">2</div>
+          <span class="step-txt" id="sl2">내용 확인</span>
         </div>
+        <div class="step-line"></div>
+        <div class="step-item">
+          <div class="step-num" id="sn3">3</div>
+          <span class="step-txt" id="sl3">코딩</span>
+        </div>
+      </div>
+      <div class="top-bar-spacer"></div>
+    </div>
 
-        <!-- 3-column UI mockup grid -->
-        <div class="ref-block" id="refBlock">
-          <div class="struct-label" style="margin-top:20px">화면 예시를 골라주세요</div>
-          <div class="ref-grid">
-            <!-- Variation A: Mint/Lavender (original) -->
-            <div class="ref-grid-item" onclick="pickRef(this)">
-              <div class="ref-mock">
-                <div class="rev rev-a">
-                  <div class="rev-date">7.21 – 7.23</div>
-                  <div class="rev-off-badge">~80% OFF</div>
-                  <div class="rev-title">주말 특가</div>
-                  <div class="rev-badges">
-                    <span class="rev-b-pill" style="background:rgba(255,255,255,.5);color:#333">WEEKEND</span>
-                    <span class="rev-b-pill" style="background:#7c5cbf;color:#fff">Sale</span>
-                  </div>
-                  <div class="rev-coupon rev-coupon-a">
-                    <div class="rev-cpn-label">추가할인</div>
-                    <div class="rev-cpn-val">10% OFF</div>
-                    <div class="rev-cpn-code">COUPON 1</div>
-                  </div>
-                  <div class="rev-cta rev-cta-a">쿠폰 한 번에 다운받기</div>
-                </div>
-              </div>
-              <div class="ref-grid-info">
-                <div class="ref-grid-name">베리에이션 A</div>
-                <div class="ref-grid-desc">민트/라벤더 그라디언트</div>
-              </div>
+    <div class="form-scroll">
+      <div class="form-h1">만드시려는 제품이 어떤 건가요?</div>
+
+      <!-- Type Cards -->
+      <div class="cards-row">
+        <div class="t-card" data-type="business">
+          <div class="t-card-img">
+            <svg width="52" height="44" viewBox="0 0 52 44" fill="none"><rect x="2" y="2" width="48" height="40" rx="4" fill="#e8eaf0" stroke="#d0d3dc" stroke-width="1.5"/><circle cx="19" cy="16" r="8" stroke="#c8ccd8" stroke-width="1.5" fill="none"/><path d="M4 38c0-8 28-12 44-4" stroke="#c8ccd8" stroke-width="1.5" fill="none"/></svg>
+          </div>
+          <div class="t-card-body">
+            <div class="t-card-ico">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="16" height="11" rx="2"/><path d="M7 7V5a3 3 0 0 1 6 0v2"/><path d="M2 11h16"/></svg>
             </div>
-            <!-- Variation B: Coral/Peach (warm) -->
-            <div class="ref-grid-item" onclick="pickRef(this)">
-              <div class="ref-mock">
-                <div class="rev rev-b">
-                  <div class="rev-date" style="color:rgba(80,20,30,.6)">7.21 – 7.23</div>
-                  <div class="rev-off-badge" style="background:rgba(180,40,60,.15);color:#a01830">~80% OFF</div>
-                  <div class="rev-title" style="color:#2a0010">주말 특가</div>
-                  <div class="rev-badges">
-                    <span class="rev-b-pill" style="background:rgba(255,255,255,.55);color:#5a1020">WEEKEND</span>
-                    <span class="rev-b-pill" style="background:#c03060;color:#fff">Sale</span>
-                  </div>
-                  <div class="rev-coupon rev-coupon-b">
-                    <div class="rev-cpn-label">추가할인</div>
-                    <div class="rev-cpn-val">10% OFF</div>
-                    <div class="rev-cpn-code">COUPON 1</div>
-                  </div>
-                  <div class="rev-cta rev-cta-b">쿠폰 한 번에 다운받기</div>
-                </div>
-              </div>
-              <div class="ref-grid-info">
-                <div class="ref-grid-name">베리에이션 B</div>
-                <div class="ref-grid-desc">코랄/피치 웜 톤</div>
-              </div>
+            <div class="t-card-name">Business</div>
+            <div class="t-card-desc">Example of a card's description. Stick to one or two sentences.</div>
+          </div>
+        </div>
+        <div class="t-card" data-type="saas">
+          <div class="t-card-img">
+            <svg width="52" height="44" viewBox="0 0 52 44" fill="none"><rect x="2" y="2" width="48" height="40" rx="4" fill="#e8eaf0" stroke="#d0d3dc" stroke-width="1.5"/><circle cx="19" cy="16" r="8" stroke="#c8ccd8" stroke-width="1.5" fill="none"/><path d="M4 38c0-8 28-12 44-4" stroke="#c8ccd8" stroke-width="1.5" fill="none"/></svg>
+          </div>
+          <div class="t-card-body">
+            <div class="t-card-ico">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2a8 8 0 0 1 8 8c0 3-1.5 5-3.5 6.5"/><path d="M10 2a8 8 0 0 0-8 8c0 3 1.5 5 3.5 6.5"/><path d="M7 14l3 4 3-4"/></svg>
             </div>
-            <!-- Variation C: Dark Navy -->
-            <div class="ref-grid-item" onclick="pickRef(this)">
-              <div class="ref-mock">
-                <div class="rev rev-c">
-                  <div class="rev-date" style="color:rgba(180,210,255,.5)">7.21 – 7.23</div>
-                  <div class="rev-off-badge" style="background:rgba(0,212,255,.15);color:#00d4ff">~80% OFF</div>
-                  <div class="rev-title" style="color:#e8f4ff">주말 특가</div>
-                  <div class="rev-badges">
-                    <span class="rev-b-pill" style="background:rgba(255,255,255,.12);color:#b0d8ff">WEEKEND</span>
-                    <span class="rev-b-pill" style="background:#00d4ff;color:#001a2e">Sale</span>
-                  </div>
-                  <div class="rev-coupon rev-coupon-c">
-                    <div class="rev-cpn-label">추가할인</div>
-                    <div class="rev-cpn-val">10% OFF</div>
-                    <div class="rev-cpn-code">COUPON 1</div>
-                  </div>
-                  <div class="rev-cta rev-cta-c">쿠폰 한 번에 다운받기</div>
-                </div>
-              </div>
-              <div class="ref-grid-info">
-                <div class="ref-grid-name">베리에이션 C</div>
-                <div class="ref-grid-desc">딥 네이비 다크 톤</div>
-              </div>
+            <div class="t-card-name">For SaaS</div>
+            <div class="t-card-desc">Example of a card's description. Stick to one or two sentences.</div>
+          </div>
+        </div>
+        <div class="t-card" data-type="portfolio">
+          <div class="t-card-img">
+            <svg width="52" height="44" viewBox="0 0 52 44" fill="none"><rect x="2" y="2" width="48" height="40" rx="4" fill="#e8eaf0" stroke="#d0d3dc" stroke-width="1.5"/><circle cx="19" cy="16" r="8" stroke="#c8ccd8" stroke-width="1.5" fill="none"/><path d="M4 38c0-8 28-12 44-4" stroke="#c8ccd8" stroke-width="1.5" fill="none"/></svg>
+          </div>
+          <div class="t-card-body">
+            <div class="t-card-ico">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 1v4M10 15v4M1 10h4M15 10h4M3.4 3.4l2.8 2.8M13.8 13.8l2.8 2.8M3.4 16.6l2.8-2.8M13.8 6.2l2.8-2.8"/></svg>
+            </div>
+            <div class="t-card-name">My PortFolio</div>
+            <div class="t-card-desc">Example of a card's description. Stick to one or two sentences.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Grid -->
+      <div class="form-grid" id="formGrid">
+        <div>
+          <label class="fg-label">Device</label>
+          <div class="sel-wrap">
+            <select class="fg-select" id="fDevice">
+              <option value="">선택하세요</option>
+              <option value="mobile">Mobile</option>
+              <option value="tablet">Tablet</option>
+              <option value="desktop">Desktop</option>
+            </select>
+            <svg class="sel-chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 4l3 3 3-3"/></svg>
+          </div>
+        </div>
+        <div>
+          <label class="fg-label">Language</label>
+          <div class="sel-wrap">
+            <select class="fg-select" id="fLang">
+              <option value="">선택하세요</option>
+              <option value="korean">Korean</option>
+              <option value="english">English</option>
+              <option value="japanese">Japanese</option>
+            </select>
+            <svg class="sel-chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 4l3 3 3-3"/></svg>
+          </div>
+        </div>
+        <div>
+          <label class="fg-label">Target Users</label>
+          <div class="sel-wrap">
+            <select class="fg-select" id="fUsers">
+              <option value="">선택하세요</option>
+              <option value="founders">Startup Founders</option>
+              <option value="developers">Developers</option>
+              <option value="designers">Designers</option>
+              <option value="general">General</option>
+            </select>
+            <svg class="sel-chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 4l3 3 3-3"/></svg>
+          </div>
+        </div>
+        <div>
+          <label class="fg-label">Problem to Solve</label>
+          <input class="fg-input" type="text" id="fProblem" placeholder="예: MVP 빠르게 검증하기...">
+        </div>
+        <div>
+          <label class="fg-label">Core Features</label>
+          <div class="mtag" id="mtagWrap">
+            <div class="mtag-add">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="#bbb" stroke-width="1.6"><path d="M5.5 1v9M1 5.5h9"/></svg>
+              기능 선택...
+            </div>
+            <div class="mtag-dropdown" id="mtagDrop">
+              <label class="mtag-opt"><input type="checkbox" value="Search"> Search</label>
+              <label class="mtag-opt"><input type="checkbox" value="Log in"> Log in</label>
+              <label class="mtag-opt"><input type="checkbox" value="Payments"> Payments</label>
+              <label class="mtag-opt"><input type="checkbox" value="Dashboard"> Dashboard</label>
+              <label class="mtag-opt"><input type="checkbox" value="Notifications"> Notifications</label>
             </div>
           </div>
+        </div>
+        <div>
+          <label class="fg-label">Design Tone</label>
+          <div class="sel-wrap">
+            <select class="fg-select" id="fTone">
+              <option value="">선택하세요</option>
+              <option value="minimal">Minimal</option>
+              <option value="bold">Bold</option>
+              <option value="playful">Playful</option>
+              <option value="corporate">Corporate</option>
+            </select>
+            <svg class="sel-chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 4l3 3 3-3"/></svg>
+          </div>
+        </div>
+      </div>
 
-          <div class="fw-label">Framework 구성도</div>
+      <div class="next-wrap">
+        <button class="next-btn" id="nextBtn">Next</button>
+      </div>
+
+      <div class="gen-prompt" id="genPrompt">
+        초기 스타트업 창업자가 비즈니스 아이디어를 빠르게 검증할 수 있는 모바일 중심 MVP를 만들어주세요.
+        사용자는 온보딩을 거쳐 이메일로 로그인하고, 대시보드에서 핵심 지표와 진행 상황을 한눈에 확인할 수 있어야 합니다.<br><br>
+        앱 안에서는 필요한 항목을 검색하고, 서비스나 상품을 선택한 뒤 결제까지 자연스럽게 완료할 수 있어야 합니다.<br><br>
+        전체 디자인은 미니멀하고 전문적인 느낌으로 구성하되, 처음 사용하는 사람도 복잡하지 않게 이해할 수 있어야 합니다.
+        첫 번째 버전은 회원가입, 대시보드 확인, 검색, 결제, 기본 분석 확인까지의 핵심 사용자 흐름에 집중해주세요.
+      </div>
+    </div>
+
+    <!-- Bottom bar (no tool pills) -->
+    <div class="bot-bar" style="padding-top:10px;">
+      <div class="bot-input-box">
+        <textarea class="bot-textarea" id="s2Textarea" rows="1" placeholder="무엇이든 물어보세요. @(으)로 플러그인을 사용하거나 파일을 언급하세요."></textarea>
+        <div class="bot-actions">
+          <button class="ba-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="5"/><path d="M6 4v4M4 6h4"/></svg></button>
+          <button class="ba-text">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3" width="9" height="7" rx="1.5"/><circle cx="3.5" cy="5.5" r="1.3"/><path d="M6 5.5h3M6 7.5h3"/></svg>
+            <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 3.5l3 3 3-3"/></svg>
+          </button>
+          <div class="ba-spacer"></div>
+          <button class="ba-text">5.5 중간 <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 3.5l3 3 3-3"/></svg></button>
+          <button class="ba-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="1" width="4" height="6" rx="2"/><path d="M2 7a4 4 0 0 0 8 0M6 11V9"/></svg></button>
+          <button class="ba-send" id="s2Send"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 10V2M2 6l4-4 4 4"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: ANALYSIS -->
+  <div class="screen" id="s3">
+    <div class="s3-main">
+      <div class="top-bar">
+        <button class="back-circle" id="back3">&#8592;</button>
+        <div class="steps">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <span class="step-txt">내용 입력</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step-item">
+            <div class="step-num on">2</div>
+            <span class="step-txt on">내용 확인</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <span class="step-txt">코딩</span>
+          </div>
+        </div>
+        <div class="top-bar-spacer"></div>
+      </div>
+
+      <div class="s3-scroll">
+        <div class="s3-h1">요청사항 분석</div>
+
+        <div class="a-row">
+          <div class="a-label">문제 정의</div>
+          <div class="a-val">초기 창업자가 개발 리소스 없이 아이디어를 빠르게 검증할 모바일 MVP</div>
+          <button class="a-edit">편집</button>
+        </div>
+        <div class="a-row">
+          <div class="a-label">핵심 페인포인트</div>
+          <div class="a-val">구현 시간과 비용이 크고, MVP 기능 범위와 검증 지표를 명확히 하기 어렵다.</div>
+          <button class="a-edit">편집</button>
+        </div>
+        <div class="a-row">
+          <div class="a-label">필수 기능 정의</div>
+          <div class="a-val">온보딩, 이메일 로그인, 대시보드, 검색, 결제, 기본 분석 기능을 포함합니다.</div>
+          <button class="a-edit">편집</button>
+        </div>
+        <div class="a-row">
+          <div class="a-label">화면 구성</div>
+          <div class="a-val">온보딩 → 로그인 → 대시보드 → 검색 → 상세 → 결제 → 분석 화면</div>
+          <button class="a-edit">편집</button>
+        </div>
+        <div class="a-row">
+          <div class="a-label">디자인 방향</div>
+          <div class="a-val">미니멀하고 전문적인 모바일 SaaS 스타일로, 정보 구조와 사용성을 우선</div>
+          <button class="a-edit">편집</button>
+        </div>
+
+        <div class="fw-section">
+          <div class="fw-title">Framework 구성도</div>
           <div class="fw-row">
-            <div style="position:relative">
-              <div class="fw-box">Figma <span class="fw-i">ⓘ<span class="fw-tip">Figma: 디자인 원본 파일</span></span></div>
-            </div>
-            <div class="fw-arr">→</div>
-            <div style="position:relative">
-              <div class="fw-box">HTML/CSS/JS <span class="fw-i">ⓘ<span class="fw-tip">HTML/CSS/JS: 실제 코드로 구현되는 언어</span></span></div>
-            </div>
-            <div class="fw-arr">→</div>
-            <div style="position:relative">
-              <div class="fw-box">GitHub Pages <span class="fw-i">ⓘ<span class="fw-tip">GitHub Pages: 무료 정적 웹 호스팅 서비스</span></span></div>
-            </div>
+            <div class="fw-chip">Next.js</div>
+            <div class="fw-line"></div>
+            <div class="fw-chip">Supabase</div>
+            <div class="fw-line"></div>
+            <div class="fw-chip">Stripe</div>
           </div>
-          <div class="cta-row">
-            <button class="cta-full" onclick="toS3()">이 방향이 맞나요? →</button>
+        </div>
+
+        <div class="s3-btns">
+          <button class="btn-gray-pill">Edit</button>
+          <button class="btn-blue-pill" id="exportBtn">Export Code</button>
+        </div>
+      </div>
+
+      <div class="bot-bar" style="padding-top:10px;">
+        <div class="bot-input-box">
+          <textarea class="bot-textarea" rows="1" placeholder="후속 변경 사항을 부탁하세요."></textarea>
+          <div class="bot-actions">
+            <button class="ba-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="5"/><path d="M6 4v4M4 6h4"/></svg></button>
+            <button class="ba-text">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="3" width="9" height="7" rx="1.5"/><circle cx="3.5" cy="5.5" r="1.3"/></svg>
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 3.5l3 3 3-3"/></svg>
+            </button>
+            <div class="ba-spacer"></div>
+            <button class="ba-text">5.5 중간 <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 3.5l3 3 3-3"/></svg></button>
+            <button class="ba-btn"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="1" width="4" height="6" rx="2"/><path d="M2 7a4 4 0 0 0 8 0M6 11V9"/></svg></button>
+            <button class="ba-send on"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 10V2M2 6l4-4 4 4"/></svg></button>
           </div>
         </div>
       </div>
     </div>
+    <div class="s3-panel">
+      <div class="phone-frame">
+        <div class="phone-screen" id="phoneScreen">
 
+          <!-- Status bar -->
+          <div class="pv-statusbar">
+            <span class="pv-time">9:41</span>
+            <div class="pv-icons">
+              <svg width="14" height="9" viewBox="0 0 14 9" fill="currentColor" style="color:var(--pv-ink,#1d1d1f)"><rect x="0" y="2" width="2.5" height="7" rx=".6" opacity=".3"/><rect x="3.5" y="1.5" width="2.5" height="7.5" rx=".6" opacity=".5"/><rect x="7" y="0" width="2.5" height="9" rx=".6" opacity=".7"/><rect x="10.5" y="0" width="2.5" height="9" rx=".6"/></svg>
+              <svg width="18" height="9" viewBox="0 0 18 9" fill="none" style="color:var(--pv-ink,#1d1d1f)"><rect x=".5" y=".5" width="15" height="8" rx="2.5" stroke="currentColor" opacity=".35"/><rect x="1.5" y="1.5" width="12" height="6" rx="1.5" fill="currentColor"/><path d="M17 3v3a1.5 1.5 0 0 0 0-3Z" fill="currentColor" opacity=".4"/></svg>
+            </div>
+          </div>
+
+          <!-- Nav bar -->
+          <div class="pv-nav">
+            <div class="pv-nav-title" id="pvTitle">Dashboard</div>
+            <div class="pv-nav-ico">⋯</div>
+          </div>
+
+          <!-- Scrollable content -->
+          <div class="pv-scroll" id="pvContent">
+            <!-- JS will render content here -->
+          </div>
+
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- SCREEN 4: LOADING -->
+  <div class="screen" id="s4">
+    <div class="load-img">
+      <svg width="72" height="58" viewBox="0 0 72 58" fill="none"><rect x="2" y="2" width="68" height="54" rx="5" fill="#e4e7ef" stroke="#c8ccd8" stroke-width="2"/><circle cx="26" cy="20" r="10" stroke="#c8ccd8" stroke-width="2" fill="none"/><path d="M4 52c0-10 36-16 66-6" stroke="#c8ccd8" stroke-width="2" fill="none"/></svg>
+    </div>
+    <div class="load-content">
+      <div class="load-prog-wrap"><div class="load-prog-bar" id="loadBar"></div></div>
+      <div class="load-txt">코드를 추출중 입니다...</div>
+    </div>
+  </div>
+
+</main>
 </div>
-
-<!-- ══════════════════ SCREEN 3 ══════════════════ -->
-<div id="s3" class="screen">
-  <!-- Breadcrumb -->
-  <div class="top-bar">
-    <div class="bc-step act" id="bc0">
-      <div class="bc-icon" id="bci0">✦</div>
-      <div class="bc-info"><div class="bc-name">디자인 연결</div><div class="bc-time">~2분</div></div>
-    </div>
-    <div class="bc-conn">→</div>
-    <div class="bc-step" id="bc1">
-      <div class="bc-icon" id="bci1">✦</div>
-      <div class="bc-info"><div class="bc-name">코드 생성</div><div class="bc-time">~3분</div></div>
-    </div>
-    <div class="bc-conn">→</div>
-    <div class="bc-step" id="bc2">
-      <div class="bc-icon" id="bci2">✦</div>
-      <div class="bc-info"><div class="bc-name">배포 설정</div><div class="bc-time">~2분</div></div>
-    </div>
-    <div class="bc-conn">→</div>
-    <div class="bc-step" id="bc3">
-      <div class="bc-icon" id="bci3">✦</div>
-      <div class="bc-info"><div class="bc-name">완료</div><div class="bc-time"></div></div>
-    </div>
-  </div>
-
-  <div class="panels">
-    <!-- LEFT — Workflow + Work Log + Input -->
-    <div class="p-left" style="width:300px">
-      <div class="p-head">AI 어시스턴트</div>
-      <div class="task-list">
-        <div class="task">
-          <div class="t-icon t-done">✓</div>
-          <div><div class="t-name">Figma 파일 구조 분석</div><span class="badge b-done">완료</span></div>
-        </div>
-        <div class="task">
-          <div class="t-icon t-run" style="animation:spin 1.2s linear infinite">↻</div>
-          <div><div class="t-name">쿠폰 섹션 코드 생성</div><span class="badge b-run"><span class="pdot"></span>진행 중</span></div>
-        </div>
-        <div class="task">
-          <div class="t-icon t-wait">○</div>
-          <div><div class="t-name">반응형 레이아웃 적용</div><span class="badge b-wait">대기 중</span></div>
-        </div>
-        <div class="task">
-          <div class="t-icon t-wait">○</div>
-          <div><div class="t-name">배포 설정</div><span class="badge b-wait">대기 중</span></div>
-        </div>
-      </div>
-      <!-- Work Log sub-section -->
-      <hr class="log-section-divider">
-      <div class="log-section-head">작업 로그</div>
-      <div class="log-list" id="logList"></div>
-      <div class="p-input">
-        <div class="p-input-inner">
-          <input class="p-inp" id="s3Inp" placeholder="Reply to Claude..."
-            onkeydown="if(event.key==='Enter'&&!event.isComposing)sendCmd()">
-          <button class="p-send" onclick="sendCmd()">↑</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- CENTER — Code view -->
-    <div class="p-center">
-      <div class="p-head">코드 미리보기</div>
-      <div class="code-view"><pre id="codePre"></pre></div>
-    </div>
-
-    <!-- RIGHT — Live UI Preview -->
-    <div class="p-right" style="width:280px">
-      <div class="p-head">UI 미리보기</div>
-      <div class="preview-area">
-        <div class="phone-outer">
-          <div class="phone-notch"></div>
-          <div class="phone-screen">
-            <div class="mep-wrap">
-              <div class="mep-date mep-anim" id="mepDate">7.21 – 7.23</div>
-              <div class="mep-title mep-anim" id="mepTitle">주말특가</div>
-              <div class="mep-badges mep-anim" id="mepBadges">
-                <span class="mep-b-pill mep-b-white">WEEKEND</span>
-                <span class="mep-b-pill mep-b-purple">Sale</span>
-              </div>
-              <div class="mep-env-wrap mep-anim" id="mepCard">
-                <div class="mep-env-card">
-                  <div class="mep-env-cpn-label">COUPON</div>
-                  <div class="mep-env-cpn-val">10%</div>
-                  <div class="mep-env-cpn-unit">OFF</div>
-                </div>
-              </div>
-              <div class="mep-spacer"></div>
-              <button class="mep-cta mep-anim" id="mepCta">쿠폰 한 번에 다운받기</button>
-              <div class="mep-disclaimer mep-anim" id="mepDisclaimer">* 일부 상품 제외 / 중복 적용 불가</div>
-            </div>
-          </div>
-        </div>
-        <div class="preview-dim">375 × 815</div>
-        <p class="preview-note">코드 수정 시 실시간으로 반영돼요</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-let recActive=false, recTimer=null, waveTimer=null, silTimer=null, recSecs=0, s3inited=false;
+/* ── Navigation ── */
+let cur = 's1';
 
-function goTo(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function toast(msg){
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on');
-  setTimeout(()=>t.classList.remove('on'),2800);
-}
-
-// ── SCREEN 1 ─────────────────────────────────────────────
-function pickLevel(el){
-  document.querySelectorAll('.lvl').forEach(c=>c.classList.remove('sel'));
-  el.classList.add('sel'); document.getElementById('s1cta').disabled=false;
-  if(el.dataset.lv==='하') setTimeout(()=>toast('괜찮아요. 아이디어만 있으면 충분해요 ✦'),400);
-}
-function toS2(){ goTo('s2') }
-
-// ── SCREEN 2: MIC ─────────────────────────────────────────
-function toggleMic(){ if(!recActive) startRec(); else finishRec(); }
-
-function startRec(){
-  recActive=true; recSecs=0;
-  document.getElementById('micBtn').classList.add('rec');
-  document.getElementById('wave').classList.add('on');
-  document.getElementById('recTimer').style.display='flex';
-  const sub=document.getElementById('vcSub'); if(sub) sub.textContent='듣고 있어요...';
-  tickTimer(); recTimer=setInterval(tickTimer,1000);
-  waveTimer=setInterval(animWave,190);
-  silTimer=setTimeout(()=>{ if(recActive) document.getElementById('silenceBox').classList.add('on'); },3000);
-  document.getElementById('s2Log').innerHTML='';
-  appendLoading('s2Log','음성을 듣고 있어요...');
-}
-function stopRecState(){
-  recActive=false;
-  clearInterval(recTimer); clearInterval(waveTimer); clearTimeout(silTimer);
-  document.getElementById('micBtn').classList.remove('rec');
-  document.getElementById('wave').classList.remove('on');
-  document.getElementById('silenceBox').classList.remove('on');
-  for(let i=0;i<7;i++){const b=document.getElementById('wb'+i);if(b)b.style.height='6px';}
-}
-function finishRec(){
-  stopRecState();
-  document.getElementById('recTimer').style.display='none';
-  const sub=document.getElementById('vcSub'); if(sub) sub.textContent='분석 완료';
-  revealStructured();
-}
-function tickTimer(){
-  const m=String(Math.floor(recSecs/60)).padStart(2,'0');
-  const s=String(recSecs%60).padStart(2,'0');
-  document.getElementById('timerTxt').textContent=m+':'+s; recSecs++;
-}
-function animWave(){
-  for(let i=0;i<7;i++){
-    const h=Math.random()*26+5;
-    const b=document.getElementById('wb'+i); if(b) b.style.height=h+'px';
-  }
-}
-function silContinue(){
-  document.getElementById('silenceBox').classList.remove('on');
-  silTimer=setTimeout(()=>{ if(recActive) document.getElementById('silenceBox').classList.add('on'); },3000);
-}
-function silDone(){ finishRec(); }
-function toggleTxtArea(){ document.getElementById('txtArea').classList.toggle('on'); }
-
-function revealStructured(){
-  document.getElementById('emptyState').style.display='none';
-  document.getElementById('structBlock').classList.add('on');
-  document.getElementById('refBlock').classList.add('on');
-  const id='s2Log';
-  document.getElementById(id).innerHTML='';
-  const seq=[
-    {d:0,   fn:()=>appendText(id,'음성 분석을 완료했어요!')},
-    {d:350, fn:()=>appendTool(id,'Grep','목적 / 타겟')},
-    {d:700, fn:()=>appendTool(id,'Read','사용자 요구사항')},
-    {d:1050,fn:()=>appendText(id,'목적과 타겟을 파악했어요. 구성 요소 3개를 정리했어요.')},
-    {d:1400,fn:()=>appendText(id,'GitHub Pages 배포 방식이 적합해요.')},
-    {d:1750,fn:()=>appendText(id,'스타일 레퍼런스를 선택하면 코드 생성을 시작할게요.')},
-  ];
-  seq.forEach(s=>setTimeout(s.fn,s.d));
-}
-function sendS2(){
-  const inp=document.getElementById('s2Inp'); const v=inp.value.trim(); if(!v) return; inp.value='';
-  appendUser('s2Log',v);
-  setTimeout(()=>appendText('s2Log','확인했어요. 작업에 반영할게요.'),350);
+function go(id) {
+  const from = document.getElementById(cur);
+  const to = document.getElementById(id);
+  from.classList.add('out-left');
+  from.classList.remove('active');
+  setTimeout(() => from.classList.remove('out-left'), 350);
+  to.style.cssText += 'transform:translateX(24px);opacity:0;';
+  to.classList.add('active');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    to.style.transform = '';
+    to.style.opacity = '';
+  }));
+  cur = id;
 }
 
-// ── STRUCT EDIT ───────────────────────────────────────────
-function editRow(idx){
-  const v=document.getElementById('sv'+idx);
-  const btn=v.closest('.srow').querySelector('.sedit');
-  if(btn.textContent==='편집'){
-    const cur=v.textContent; v.innerHTML='';
-    const inp=document.createElement('input'); inp.value=cur; v.appendChild(inp); inp.focus();
-    btn.textContent='저장';
-    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') editRow(idx); });
-  } else {
-    const inp=v.querySelector('input'); if(inp) v.textContent=inp.value; btn.textContent='편집';
-  }
-}
-function pickRef(el){
-  document.querySelectorAll('.ref-grid-item').forEach(r=>r.classList.remove('sel'));
-  el.classList.add('sel');
-}
-function toS3(){ goTo('s3'); if(!s3inited){ s3inited=true; initS3(); } }
-
-// ── LOG HELPERS ───────────────────────────────────────────
-function appendUser(id,text){
-  const list=document.getElementById(id);
-  const d=document.createElement('div'); d.className='log-user'; d.textContent=text;
-  list.appendChild(d); list.scrollTop=list.scrollHeight;
-}
-function appendText(id,text){
-  const list=document.getElementById(id);
-  const d=document.createElement('div'); d.className='log-item';
-  d.innerHTML=`<span class="log-bull">•</span><span class="log-body">${text}</span>`;
-  list.appendChild(d); list.scrollTop=list.scrollHeight;
-}
-function appendTool(id,verb,file){
-  const list=document.getElementById(id);
-  const d=document.createElement('div'); d.className='log-item';
-  d.innerHTML=`<span class="log-bull">•</span><span class="log-body"><span class="log-verb">${verb}</span> <span class="log-file">${file}</span></span>`;
-  list.appendChild(d); list.scrollTop=list.scrollHeight; return d;
-}
-function appendLoading(id,text){
-  const list=document.getElementById(id);
-  const d=document.createElement('div'); d.className='log-loading';
-  d.innerHTML=`<span>*</span><span>${text}<span class="lcursor"> </span></span>`;
-  list.appendChild(d); list.scrollTop=list.scrollHeight; return d;
+function goBack(id) {
+  const from = document.getElementById(cur);
+  const to = document.getElementById(id);
+  from.style.cssText += 'transform:translateX(24px);opacity:0;transition:opacity .25s,transform .3s cubic-bezier(.4,0,.2,1);';
+  from.classList.remove('active');
+  setTimeout(() => { from.style.cssText = ''; }, 350);
+  to.style.cssText += 'transform:translateX(-16px);opacity:.6;';
+  to.classList.add('active');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    to.style.cssText += 'transition:opacity .25s,transform .3s cubic-bezier(.4,0,.2,1);';
+    to.style.transform = '';
+    to.style.opacity = '';
+    setTimeout(() => { to.style.cssText = ''; }, 350);
+  }));
+  cur = id;
 }
 
-// ── SCREEN 3 ─────────────────────────────────────────────
-const CODE_LINES=[
-  {h:'<span class="tk-doc">&lt;!DOCTYPE html&gt;</span>'},
-  {h:'<span class="tk-tag">&lt;html</span> <span class="tk-attr">lang</span>=<span class="tk-val">"ko"</span><span class="tk-tag">&gt;</span>'},
-  {h:'<span class="tk-tag">&lt;head&gt;</span>'},
-  {h:'  <span class="tk-tag">&lt;meta</span> <span class="tk-attr">charset</span>=<span class="tk-val">"UTF-8"</span><span class="tk-tag">&gt;</span>'},
-  {h:'  <span class="tk-tag">&lt;meta</span> <span class="tk-attr">name</span>=<span class="tk-val">"viewport"</span> <span class="tk-attr">content</span>=<span class="tk-val">"width=375"</span><span class="tk-tag">&gt;</span>'},
-  {h:'  <span class="tk-tag">&lt;title&gt;</span>주말특가 이벤트<span class="tk-tag">&lt;/title&gt;</span>'},
-  {h:'<span class="tk-tag">&lt;/head&gt;</span>'},
-  {h:'<span class="tk-tag">&lt;body&gt;</span>'},
-  {h:'  <span class="tk-tag">&lt;section</span> <span class="tk-attr">class</span>=<span class="tk-val">"event-page"</span> <span class="tk-attr">style</span>=<span class="tk-val">"height:815px"</span><span class="tk-tag">&gt;</span>'},
-  {h:'    <span class="tk-comment">&lt;!-- 7.21–7.23 주말특가 이벤트 --&gt;</span>'},
-  {h:'    <span class="tk-tag">&lt;p</span> <span class="tk-attr">class</span>=<span class="tk-val">"date"</span><span class="tk-tag">&gt;</span>7.21 – 7.23<span class="tk-tag">&lt;/p&gt;</span>'},
-  {h:'    <span class="tk-tag">&lt;h1</span> <span class="tk-attr">class</span>=<span class="tk-val">"title"</span><span class="tk-tag">&gt;</span>주말특가<span class="tk-tag">&lt;/h1&gt;</span>'},
-  {h:'    <span class="tk-tag">&lt;div</span> <span class="tk-attr">class</span>=<span class="tk-val">"badges"</span><span class="tk-tag">&gt;</span>'},
-  {h:'      <span class="tk-tag">&lt;span&gt;</span>WEEKEND<span class="tk-tag">&lt;/span&gt;</span> <span class="tk-tag">&lt;span&gt;</span>Sale<span class="tk-tag">&lt;/span&gt;</span>'},
-  {h:'    <span class="tk-tag">&lt;/div&gt;</span>'},
-  {h:'    <span class="tk-tag">&lt;div</span> <span class="tk-attr">class</span>=<span class="tk-val">"coupon-card"</span>'},
-  {h:'         <span class="tk-attr">style</span>=<span class="tk-val">"animation-duration:<span id="animVal">1.2s</span>"</span><span class="tk-tag">&gt;</span>',id:'animValLine'},
-  {h:'      <span class="tk-tag">&lt;span</span> <span class="tk-attr">class</span>=<span class="tk-val">"label"</span><span class="tk-tag">&gt;</span>COUPON<span class="tk-tag">&lt;/span&gt;</span>'},
-  {h:'      <span class="tk-tag">&lt;strong&gt;</span>10% OFF<span class="tk-tag">&lt;/strong&gt;</span>'},
-  {h:'    <span class="tk-tag">&lt;/div&gt;</span>'},
-  {h:'    <span class="tk-tag">&lt;button</span> <span class="tk-attr">class</span>=<span class="tk-val">"cta"</span><span class="tk-tag">&gt;</span>쿠폰 한 번에 다운받기<span class="tk-tag">&lt;/button&gt;</span>'},
-  {h:'    <span class="tk-tag">&lt;small&gt;</span>* 일부 상품 제외 / 중복 적용 불가<span class="tk-tag">&lt;/small&gt;</span>'},
-  {h:'  <span class="tk-tag">&lt;/section&gt;</span>'},
-  {h:'<span class="tk-tag">&lt;/body&gt;</span>'},
-  {h:'<span class="tk-tag">&lt;/html&gt;</span>'},
-];
+/* ── S1 → S2 ── */
+document.getElementById('openFormBtn').addEventListener('click', () => go('s2'));
 
-function initS3(){
-  document.getElementById('codePre').innerHTML='';
-  ['mepDate','mepTitle','mepBadges','mepCard','mepCta','mepDisclaimer'].forEach(eid=>{
-    const el=document.getElementById(eid); if(el) el.classList.remove('mep-show');
+/* ── S2 back ── */
+document.getElementById('back2').addEventListener('click', () => goBack('s1'));
+
+/* ── S3 back ── */
+document.getElementById('back3').addEventListener('click', () => goBack('s2'));
+
+/* ── Type card selection ── */
+let typeOk = false;
+document.querySelectorAll('.t-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.t-card').forEach(c => c.classList.remove('sel'));
+    card.classList.add('sel');
+    typeOk = true;
+    document.getElementById('formGrid').classList.add('on');
+    // Scroll to form
+    setTimeout(() => {
+      document.querySelector('.form-scroll').scrollBy({ top: 200, behavior: 'smooth' });
+    }, 100);
+    check();
   });
-  streamLogs();
-  setTimeout(advanceBreadcrumb,9000);
+});
+
+/* ── Multi-tag toggle ── */
+const mtagWrap = document.getElementById('mtagWrap');
+const mtagDrop = document.getElementById('mtagDrop');
+let selectedFeatures = [];
+
+mtagWrap.addEventListener('click', (e) => {
+  if (e.target.closest('.tag-x')) return;
+  if (e.target.closest('input[type=checkbox]') || e.target.closest('.mtag-opt')) return;
+  mtagDrop.classList.toggle('show');
+});
+
+document.addEventListener('click', (e) => {
+  if (!mtagWrap.contains(e.target)) mtagDrop.classList.remove('show');
+});
+
+mtagDrop.querySelectorAll('input[type=checkbox]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    selectedFeatures = Array.from(mtagDrop.querySelectorAll('input:checked')).map(i => i.value);
+    renderTags();
+    check();
+  });
+});
+
+function renderTags() {
+  // Remove existing tags
+  mtagWrap.querySelectorAll('.tag').forEach(t => t.remove());
+  const addEl = mtagWrap.querySelector('.mtag-add');
+  selectedFeatures.forEach(f => {
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    tag.innerHTML = `${f} <span class="tag-x">×</span>`;
+    tag.querySelector('.tag-x').addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectedFeatures = selectedFeatures.filter(x => x !== f);
+      mtagDrop.querySelector(`input[value="${f}"]`).checked = false;
+      renderTags();
+      check();
+    });
+    mtagWrap.insertBefore(tag, addEl);
+  });
+  addEl.style.display = selectedFeatures.length > 0 ? 'none' : 'flex';
 }
 
-function showMep(eid){
-  const el=document.getElementById(eid);
-  if(!el) return;
-  setTimeout(()=>{
-    el.classList.add('mep-show');
-    // After reveal finishes: lock opacity inline, strip CSS animation classes
-    // so later animation-property changes don't revert opacity to 0
-    setTimeout(()=>{
-      el.style.opacity='1';
-      el.classList.remove('mep-anim','mep-show');
-      if(eid==='mepCard') el.style.animation='envFloat 1.2s ease-in-out infinite';
-    },700);
-  },30);
-}
-
-function streamCodeLines(from,to,startDelay,gap){
-  const pre=document.getElementById('codePre');
-  for(let i=from;i<=to;i++){
-    const delay=startDelay+(i-from)*gap;
-    setTimeout(()=>{
-      const ln=CODE_LINES[i];
-      const d=document.createElement('div'); d.className='cl';
-      if(ln.id) d.id=ln.id;
-      d.innerHTML=`<span class="lnum">${i+1}</span><span>${ln.h}</span>`;
-      d.style.opacity='0';
-      pre.appendChild(d);
-      pre.scrollTop=pre.scrollHeight;
-      requestAnimationFrame(()=>{ d.style.transition='opacity 0.35s'; d.style.opacity='1'; });
-    },delay);
+/* ── Form check ── */
+function check() {
+  const ok = typeOk
+    && document.getElementById('fDevice').value
+    && document.getElementById('fUsers').value
+    && document.getElementById('fProblem').value.trim()
+    && selectedFeatures.length > 0
+    && document.getElementById('fTone').value;
+  document.getElementById('nextBtn').classList.toggle('on', ok);
+  if (ok) {
+    document.getElementById('genPrompt').classList.add('show');
+    const ta = document.getElementById('s2Textarea');
+    ta.value = '초기 스타트업 창업자가 비즈니스 아이디어를 빠르게 검증할 수 있는 모바일 중심 MVP를 만들어주세요. 사용자는 온보딩을 거쳐 이메일로 로그인하고, 대시보드에서 핵심 지표와 진행 상황을 한눈에 확인할 수 있어야 합니다. 앱 안에서는 필요한 항목을 검색하고, 서비스나 상품을 선택한 뒤 결제까지 자연스럽게 완료할 수 있어야 합니다.';
+    document.getElementById('s2Send').classList.add('on');
   }
 }
 
-function streamLogs(){
-  const id='logList'; document.getElementById(id).innerHTML='';
-  const seq=[
-    // 0s — 유저 메시지
-    {d:0,    fn:()=>appendUser(id,'쿠폰 이벤트 페이지 만들어줘')},
-    // 0.8s — Claude 응답
-    {d:800,  fn:()=>appendText(id,'바로 시작할게요! Figma 파일을 먼저 확인할게요.')},
-    // 1.6s — Read figma-tokens → head 코드 스트리밍
-    {d:1600, fn:()=>appendTool(id,'Read','figma-tokens.json')},
-    {d:1800, fn:()=>streamCodeLines(0,6,0,130)},
-    // 2.7s — 폰: 날짜 + 제목 등장
-    {d:2700, fn:()=>{ showMep('mepDate'); showMep('mepTitle'); }},
-    // 3.4s — Grep discount → 뱃지 코드
-    {d:3400, fn:()=>appendTool(id,'Grep','discount')},
-    {d:3600, fn:()=>streamCodeLines(7,9,0,150)},
-    // 4.2s — 폰: WEEKEND·Sale 뱃지 등장
-    {d:4200, fn:()=>showMep('mepBadges')},
-    // 4.8s — Read pricing_utils
-    {d:4800, fn:()=>appendTool(id,'Read','pricing_utils.ts')},
-    {d:5000, fn:()=>streamCodeLines(10,14,0,160)},
-    // 5.9s — 로직 확인 메시지
-    {d:5900, fn:()=>appendText(id,'쿠폰 컴포넌트 로직을 찾았어요. 코드를 작성할게요.')},
-    // 6.7s — Edit index.html → 쿠폰 카드 코드 + 폰에 카드 등장
-    {d:6700, fn:()=>appendTool(id,'Edit','index.html')},
-    {d:6900, fn:()=>streamCodeLines(15,19,0,170)},
-    {d:7200, fn:()=>showMep('mepCard')},
-    // 8.0s — Edit style.css → CTA + disclaimer 등장
-    {d:8000, fn:()=>appendTool(id,'Edit','style.css')},
-    {d:8200, fn:()=>streamCodeLines(20,24,0,130)},
-    {d:8500, fn:()=>showMep('mepCta')},
-    {d:8900, fn:()=>showMep('mepDisclaimer')},
-    // 9.8s — 초안 완성 + 속도 경고 (시나리오 step 11)
-    {d:9800, fn:()=>appendText(id,'초안이 완성됐어요! 쿠폰 애니메이션이 1.2s로 설정돼 있어요 — 조금 빠르게 느껴질 수 있어요.')},
-    {d:10600,fn:()=>appendLoading(id,'Reticulating...')},
-  ];
-  seq.forEach(s=>setTimeout(s.fn,s.d));
-}
-function advanceBreadcrumb(){
-  document.getElementById('bc0').classList.remove('act');
-  document.getElementById('bc0').classList.add('done');
-  document.getElementById('bci0').textContent='✓';
-  document.getElementById('bc1').classList.add('act');
-}
-function advanceBreadcrumb2(){
-  document.getElementById('bc1').classList.remove('act');
-  document.getElementById('bc1').classList.add('done');
-  document.getElementById('bci1').textContent='✓';
-  document.getElementById('bc2').classList.add('act');
-}
-function sendCmd(){
-  const inp=document.getElementById('s3Inp');
-  const v=inp.value.trim(); if(!v) return; inp.value='';
-  const loading=document.querySelector('#logList .log-loading');
-  if(loading) loading.remove();
-  appendUser('logList',v);
-  applyAnimEdit();
-}
-function applyAnimEdit(){
-  const id='logList';
-  // 시나리오 step 13: Claude 응답 + 코드 수정
-  setTimeout(()=>appendText(id,'네, 속도 바로 조정할게요!'),500);
+['fDevice','fLang','fUsers','fTone'].forEach(id =>
+  document.getElementById(id).addEventListener('change', check));
+document.getElementById('fProblem').addEventListener('input', check);
 
-  // 코드뷰: animValLine 하이라이트 → 1.2s → 2.4s
-  setTimeout(()=>{
-    const line=document.getElementById('animValLine');
-    if(line) line.classList.add('hl');
-  },1000);
-  setTimeout(()=>{
-    const val=document.getElementById('animVal');
-    if(val) val.textContent='2.4s';
-  },1300);
-  setTimeout(()=>{
-    const line=document.getElementById('animValLine');
-    if(line) line.classList.remove('hl');
-    // 폰 미리보기 애니메이션 2.4s로 교체
-    const mc=document.getElementById('mepCard');
-    if(mc) mc.style.animation='envFloat 2.4s ease-in-out infinite';
-  },1700);
+/* ── Next ── */
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (document.getElementById('nextBtn').classList.contains('on')) go('s3');
+});
 
-  // 로그: Edit + 확인
-  setTimeout(()=>appendTool(id,'Edit','style.css'),2000);
-  setTimeout(()=>appendText(id,'animation-duration 1.2s → 2.4s 반영됐어요 ✓'),2600);
+/* ── Export ── */
+document.getElementById('exportBtn').addEventListener('click', () => {
+  go('s4');
+  document.getElementById('sbBottom').classList.add('show');
+  startLoad();
+});
 
-  // 다음 단계: 배포 설정 진행 (시나리오 계속)
-  setTimeout(()=>appendLoading(id,'배포 파일 빌드 중...'),3600);
-  setTimeout(()=>{
-    advanceBreadcrumb2();
-  },4200);
-  setTimeout(()=>{
-    const loading=document.querySelector('#logList .log-loading');
-    if(loading) loading.remove();
-    appendTool(id,'Write','dist/index.html');
-  },4600);
-  setTimeout(()=>appendTool(id,'Run','gh-pages --dist'),5300);
-  setTimeout(()=>appendText(id,'GitHub Pages 배포 완료! 링크가 준비됐어요.'),6100);
-  setTimeout(()=>appendLoading(id,'Reticulating...'),6800);
+/* ══════════════════════════════════════
+   PHONE PREVIEW ENGINE
+══════════════════════════════════════ */
+const typeConfig = {
+  business: {
+    title: 'Dashboard',
+    greeting: 'Welcome back 👋',
+    sub: 'Your business at a glance',
+    metrics: [
+      { ico: '💰', val: '$12.4k', lbl: 'Revenue' },
+      { ico: '👥', val: '247', lbl: 'Users' },
+      { ico: '📈', val: '+18%', lbl: 'Growth' },
+      { ico: '⭐', val: '4.8', lbl: 'Rating' },
+    ],
+  },
+  saas: {
+    title: 'Overview',
+    greeting: 'Your SaaS metrics',
+    sub: 'Real-time system status',
+    metrics: [
+      { ico: '⚡', val: '99.9%', lbl: 'Uptime' },
+      { ico: '🔌', val: '1.2k', lbl: 'API calls' },
+      { ico: '🧑‍💻', val: '48', lbl: 'Active users' },
+      { ico: '📦', val: '3', lbl: 'Integrations' },
+    ],
+  },
+  portfolio: {
+    title: 'Portfolio',
+    greeting: 'My Work ✦',
+    sub: 'Projects & achievements',
+    metrics: [
+      { ico: '🎨', val: '12', lbl: 'Projects' },
+      { ico: '🤝', val: '8', lbl: 'Clients' },
+      { ico: '⏱', val: '5yr', lbl: 'Experience' },
+      { ico: '🏆', val: '3', lbl: 'Awards' },
+    ],
+  },
+};
+
+const featureConfig = {
+  'Search':    { ico: '🔍', name: 'Search', desc: 'Find anything instantly' },
+  'Log in':    { ico: '🔐', name: 'Sign In', desc: 'Secure authentication' },
+  'Payments':  { ico: '💳', name: 'Payments', desc: 'Fast & secure checkout' },
+  'Dashboard': { ico: '📊', name: 'Dashboard', desc: 'Key metrics at a glance' },
+  'Notifications': { ico: '🔔', name: 'Alerts', desc: 'Stay up to date' },
+};
+
+function updatePreview() {
+  const typeEl  = document.querySelector('.t-card.sel');
+  const type    = typeEl?.dataset.type || 'business';
+  const tone    = document.getElementById('fTone').value || 'minimal';
+  const features = selectedFeatures;
+
+  const cfg = typeConfig[type] || typeConfig.business;
+  const screen = document.getElementById('phoneScreen');
+  const pvTitle = document.getElementById('pvTitle');
+  const pvContent = document.getElementById('pvContent');
+
+  // Apply tone
+  screen.setAttribute('data-tone', tone);
+
+  // Update title
+  pvTitle.textContent = cfg.title;
+
+  // Build content HTML
+  let html = '';
+
+  // Greeting
+  html += `<div class="pv-greeting">${cfg.greeting}<div class="pv-sub">${cfg.sub}</div></div>`;
+
+  // Search bar
+  if (features.includes('Search')) {
+    html += `<div class="pv-search">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--pv-muted,#7a7a7a);flex-shrink:0"><circle cx="4.5" cy="4.5" r="3.5"/><path d="m7.5 7.5 2 2"/></svg>
+      <span class="pv-search-txt">Search…</span>
+    </div>`;
+  }
+
+  // Metrics grid (first 2 always, extra 2 if Dashboard selected)
+  const metricsToShow = features.includes('Dashboard') ? cfg.metrics : cfg.metrics.slice(0, 2);
+  html += '<div class="pv-metrics">';
+  metricsToShow.forEach(m => {
+    html += `<div class="pv-card">
+      <div class="pv-card-ico">${m.ico}</div>
+      <div class="pv-card-val">${m.val}</div>
+      <div class="pv-card-lbl">${m.lbl}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Feature rows (non-metric features)
+  const rowFeatures = features.filter(f => !['Search', 'Dashboard'].includes(f));
+  if (rowFeatures.length) {
+    html += '<div class="pv-divider"></div>';
+    rowFeatures.forEach(f => {
+      const fc = featureConfig[f];
+      if (!fc) return;
+      if (f === 'Log in') {
+        html += `<button class="pv-btn pv-btn-blue">${fc.ico} ${fc.name}</button>`;
+      } else if (f === 'Payments') {
+        html += `<button class="pv-btn pv-btn-dark">${fc.ico} ${fc.name}</button>`;
+      } else {
+        html += `<div class="pv-feat-row">
+          <div class="pv-feat-ico">${fc.ico}</div>
+          <div class="pv-feat-info">
+            <div class="pv-feat-name">${fc.name}</div>
+            <div class="pv-feat-desc">${fc.desc}</div>
+          </div>
+          <div class="pv-feat-chev">›</div>
+        </div>`;
+      }
+    });
+  }
+
+  pvContent.innerHTML = html;
+}
+
+// Wire preview updates to all form interactions
+document.querySelectorAll('.t-card').forEach(card => {
+  card.addEventListener('click', updatePreview);
+});
+['fTone'].forEach(id =>
+  document.getElementById(id).addEventListener('change', updatePreview));
+
+// Also update when features change — patch into existing renderTags
+const _origRenderTags = renderTags;
+// (renderTags already calls check which won't updatePreview, so we hook separately)
+mtagDrop.querySelectorAll('input[type=checkbox]').forEach(cb => {
+  cb.addEventListener('change', updatePreview);
+});
+
+// updatePreview on Next → s3
+document.getElementById('nextBtn').addEventListener('click', () => {
+  setTimeout(updatePreview, 80);
+});
+
+function startLoad() {
+  const bar = document.getElementById('loadBar');
+  let p = 0;
+  const iv = setInterval(() => {
+    p += Math.random() * 5 + 2;
+    if (p >= 100) { p = 100; clearInterval(iv); }
+    bar.style.width = p + '%';
+  }, 160);
 }
 </script>
 </body>
