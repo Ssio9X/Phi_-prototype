@@ -1,0 +1,2587 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proto</title>
+  <style>
+    :root {
+      --blue: #2563EB;
+      --blue-hover: #1d4ed8;
+      --border: #E5E7EB;
+      --text: #111827;
+      --muted: #6B7280;
+      --bg: #F9FAFB;
+      --card-selected: #2563EB;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      background: #fff;
+      height: 100vh;
+      overflow: hidden;
+      color: var(--text);
+    }
+
+    /* ─── HOME SCREEN ─── */
+    #home {
+      display: flex;
+      height: 100vh;
+      background: #fff;
+    }
+
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: #fff;
+    }
+
+    .sidebar-top {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 4px 0 12px;
+    }
+
+    .sidebar-icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+    .sidebar-icon-btn:hover { background: var(--bg); }
+
+    .sidebar-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-tab {
+      flex: 1;
+      text-align: center;
+      padding: 6px 0;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .sidebar-tab.active {
+      color: var(--blue);
+      border-bottom: 2px solid var(--blue);
+      font-weight: 500;
+    }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13.5px;
+      color: var(--text);
+      transition: background 0.1s;
+    }
+    .sidebar-nav-item:hover { background: var(--bg); }
+    .sidebar-nav-item svg { color: var(--muted); flex-shrink: 0; }
+
+    .sidebar-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 8px 0;
+    }
+
+    .sidebar-section-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: none;
+    }
+
+    .sidebar-recent-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      transition: background 0.1s;
+    }
+    .sidebar-recent-item:hover { background: var(--bg); }
+    .recent-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .recent-dot.active { background: #F59E0B; }
+    .recent-dot.inactive { background: #D1D5DB; }
+    .recent-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Main content area */
+    .home-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      background: #fff;
+      position: relative;
+    }
+
+    .home-greeting {
+      font-size: 26px;
+      font-weight: 500;
+      color: #9CA3AF;
+      text-align: center;
+    }
+
+    .home-cta-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #111827;
+      color: #fff;
+      border: none;
+      border-radius: 9999px;
+      padding: 12px 22px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .home-cta-btn:hover { background: #374151; }
+    .home-cta-btn svg { width: 16px; height: 16px; }
+
+    /* Bottom input bar */
+    .home-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .home-toolbar {
+      display: flex;
+      gap: 8px;
+    }
+
+    .toolbar-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 12.5px;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .toolbar-btn:hover { background: var(--bg); }
+    .toolbar-btn svg { width: 14px; height: 14px; color: var(--muted); }
+
+    .home-input-wrap {
+      background: #F9FAFB;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px 10px;
+    }
+
+    .home-input {
+      width: 100%;
+      background: none;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      color: var(--text);
+      resize: none;
+      min-height: 20px;
+      font-family: inherit;
+    }
+    .home-input::placeholder { color: #9CA3AF; }
+
+    .home-input-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    .input-action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      border-radius: 6px;
+    }
+    .input-action-btn:hover { background: var(--border); }
+
+    .input-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .model-badge {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .submit-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--blue);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      transition: background 0.15s;
+    }
+    .submit-btn:hover { background: var(--blue-hover); }
+
+    /* ─── WIZARD OVERLAY ─── */
+    #wizard {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+    }
+    #wizard.visible { display: flex; }
+
+    .wizard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      flex-shrink: 0;
+    }
+
+    .wizard-close-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #111827;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .wizard-close-btn:hover { background: #374151; }
+
+    .wizard-progress {
+      display: flex;
+      gap: 4px;
+    }
+
+    .progress-seg {
+      width: 48px;
+      height: 4px;
+      border-radius: 2px;
+      background: #E5E7EB;
+      transition: background 0.3s;
+    }
+    .progress-seg.active { background: var(--blue); }
+
+    .wizard-canvas-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .wizard-canvas-btn:hover { background: var(--bg); }
+    .wizard-canvas-btn.active {
+      background: #111827;
+      color: #fff;
+      border-color: #111827;
+    }
+
+    /* Wizard body - splits into left+right */
+    .wizard-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .wizard-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      padding: 12px 16px 16px;
+      gap: 8px;
+      background: #F9FAFB;
+      transition: flex 0.3s;
+    }
+
+    .wizard-left.full .panel-resizer { display: none; }
+
+    /* Content card inside wizard-left */
+    .wizard-content-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .wizard-right {
+      width: 0;
+      flex-shrink: 0;
+      overflow: hidden;
+      transition: width 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .wizard-right.visible {
+      width: 40%;
+    }
+
+    .step-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 12px;
+      flex-shrink: 0;
+    }
+
+    .btn-before {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.1s;
+      color: var(--text);
+      font-family: inherit;
+    }
+    .btn-before:hover { background: var(--bg); }
+
+    .btn-next {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+    .btn-next:hover { background: var(--blue-hover); }
+    .btn-next:disabled {
+      background: #9CA3AF;
+      cursor: not-allowed;
+    }
+
+    .step-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 40px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* For long-content steps, don't force center */
+    .step-content.no-center {
+      justify-content: flex-start;
+    }
+
+    /* panel resizer — hidden, just a gap */
+    .panel-resizer { display: none; }
+
+    .step-title {
+      font-size: 26px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .step-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 36px;
+      line-height: 1.6;
+    }
+
+    /* Category / Purpose cards */
+    .cards-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .cards-grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+    .cards-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .cards-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .select-card {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #fff;
+    }
+    .select-card:hover { border-color: #9CA3AF; }
+    .select-card.selected { border-color: var(--blue); background: #EFF6FF; }
+
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .card-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* Step 3: Form */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13.5px;
+      color: var(--text);
+      background: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 32px;
+      transition: border-color 0.15s;
+    }
+    .form-select:focus { border-color: var(--blue); }
+
+    .form-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 36px 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13.5px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--blue); }
+
+    .form-input-clear {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      display: flex;
+      padding: 2px;
+      border-radius: 4px;
+    }
+    .form-input-clear:hover { background: var(--bg); }
+
+    /* Tag input for sections — Material Design multi-select */
+    .tags-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 36px 8px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      min-height: 42px;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.15s;
+      user-select: none;
+    }
+    .tags-wrap:hover { border-color: #9CA3AF; }
+    .tags-wrap.open { border-color: var(--blue); }
+
+    .tag-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 6px;
+      padding: 2px 6px 2px 10px;
+      font-size: 12.5px;
+      color: var(--blue);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .tag-chip button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #93C5FD;
+      display: flex;
+      align-items: center;
+      padding: 1px 0 0;
+      font-size: 15px;
+      line-height: 1;
+      transition: color 0.1s;
+    }
+    .tag-chip button:hover { color: var(--blue); }
+
+    .tags-caret {
+      position: absolute;
+      right: 10px;
+      color: var(--muted);
+      pointer-events: none;
+      transition: transform 0.2s;
+    }
+    .tags-wrap.open .tags-caret { transform: rotate(180deg); }
+
+    .tags-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+      z-index: 50;
+      display: none;
+      overflow: hidden;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .tags-dropdown.open { display: block; }
+
+    .tags-dropdown-item {
+      padding: 10px 14px;
+      font-size: 13.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.1s;
+      color: var(--text);
+    }
+    .tags-dropdown-item:hover { background: #F5F8FF; }
+    .tags-dropdown-item.selected {
+      color: var(--blue);
+      font-weight: 500;
+    }
+    .tags-dropdown-item .check-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--blue);
+      flex-shrink: 0;
+    }
+
+    /* Step 4: AI Draft */
+    .draft-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .draft-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .draft-section {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .draft-section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .draft-drag-handle {
+      color: #D1D5DB;
+      cursor: grab;
+      padding-top: 2px;
+      flex-shrink: 0;
+      touch-action: none;
+    }
+    .draft-drag-handle:active { cursor: grabbing; }
+
+    .draft-section[draggable="true"] { cursor: default; transition: opacity 0.15s, border-color 0.15s, background 0.15s; }
+    .draft-section.dragging { opacity: 0.35; border-style: dashed; }
+    .draft-section.drag-over { border-color: var(--blue); background: #F0F6FF; }
+    .draft-section.drag-over-top { box-shadow: 0 -2px 0 var(--blue); }
+    .draft-section.drag-over-bottom { box-shadow: 0 2px 0 var(--blue); }
+
+    .draft-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .draft-section-body {
+      flex: 1;
+    }
+
+    .draft-section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      outline: none;
+      border: none;
+      background: none;
+      font-family: inherit;
+      color: var(--text);
+      width: 100%;
+      cursor: text;
+    }
+    .draft-section-title:focus {
+      border-bottom: 1px dashed var(--blue);
+    }
+
+    .draft-section-content {
+      font-size: 13px;
+      color: var(--muted);
+      outline: none;
+      border: none;
+      background: none;
+      font-family: inherit;
+      width: 100%;
+      resize: none;
+      line-height: 1.6;
+      cursor: text;
+    }
+    .draft-section-content:focus {
+      color: var(--text);
+    }
+
+    .draft-section-bullets {
+      list-style: none;
+      margin-top: 6px;
+    }
+    .draft-section-bullets li {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 3px 0 3px 14px;
+      position: relative;
+    }
+    .draft-section-bullets li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: var(--muted);
+    }
+
+    .draft-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .btn-delete {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text);
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .btn-delete:hover { background: #FEF2F2; border-color: #FCA5A5; color: #EF4444; }
+
+    .btn-add {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-add:hover { background: var(--blue-hover); }
+
+    /* Step 5: Style */
+    .style-section-label {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: var(--text);
+    }
+
+    .style-subsection-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .density-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .density-card {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 14px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #fff;
+    }
+    .density-card:hover { border-color: #9CA3AF; }
+    .density-card.selected { border-color: var(--blue); background: #EFF6FF; }
+
+    .density-preview {
+      margin-bottom: 12px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .density-preview-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .density-line {
+      height: 3px;
+      border-radius: 2px;
+      background: #D1D5DB;
+    }
+    .density-card.selected .density-line { background: #BFDBFE; }
+
+    .density-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .density-card.selected .density-title { color: var(--blue); }
+
+    .density-desc {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .theme-card {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .theme-card:hover { border-color: #9CA3AF; }
+    .theme-card.selected { border-color: var(--blue); }
+
+    .theme-swatch {
+      height: 64px;
+      background: #F3F4F6;
+    }
+
+    /* ─── Char counter & warnings ─── */
+    .input-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+      min-height: 18px;
+    }
+    .char-counter { font-size: 11px; color: var(--muted); }
+    .char-counter.warn  { color: #F59E0B; }
+    .char-counter.over  { color: #EF4444; }
+    .form-input.over    { border-color: #EF4444; }
+
+    .section-warning {
+      font-size: 11.5px;
+      color: #F59E0B;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ─── AI prompt response ─── */
+    .ai-response {
+      background: #F0F6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--text);
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    .ai-response.visible { display: flex; align-items: flex-start; gap: 8px; }
+    .ai-badge {
+      background: var(--blue);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .ai-response-text { line-height: 1.5; flex: 1; }
+
+    .prompt-loading {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 4px 0;
+    }
+    .prompt-loading.visible { display: flex; }
+    .loading-dots span {
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--blue);
+      animation: bounce 1.2s infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+      40% { transform: translateY(-4px); opacity: 1; }
+    }
+
+    .theme-name {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px;
+      text-align: center;
+      color: var(--text);
+      background: #fff;
+    }
+
+    /* Bottom prompt area in wizard */
+    .wizard-prompt-area {
+      flex-shrink: 0;
+      padding: 12px 16px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .wizard-prompt-wrap {
+      background: transparent;
+      padding: 0;
+    }
+
+    .wizard-prompt-input {
+      width: 100%;
+      background: none;
+      border: none;
+      outline: none;
+      font-size: 13.5px;
+      color: var(--text);
+      resize: none;
+      min-height: 18px;
+      font-family: inherit;
+    }
+    .wizard-prompt-input::placeholder { color: #9CA3AF; }
+
+    .wizard-prompt-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    /* Right panel - Canvas */
+    .canvas-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .canvas-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 12px 16px;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .preview-toggle-btn {
+      padding: 6px 14px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+    .preview-toggle-btn:first-child { border-radius: 8px 0 0 8px; border-right: none; }
+    .preview-toggle-btn:last-child { border-radius: 0 8px 8px 0; }
+    .preview-toggle-btn.active {
+      background: #111827;
+      color: #fff;
+      border-color: #111827;
+    }
+
+    .canvas-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .wireframe-container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .wireframe-device {
+      border: 1.5px solid #D1D5DB;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: all 0.3s;
+    }
+
+    .wireframe-device.mobile {
+      max-width: 200px;
+      margin: 0 auto;
+    }
+
+    .wireframe-chrome {
+      background: #111827;
+      padding: 7px 12px;
+      font-size: 10px;
+      color: #9CA3AF;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .wireframe-body {
+      padding: 0;
+      background: #fff;
+    }
+
+    .wf-block {
+      background: #E5E7EB;
+      border-radius: 3px;
+      margin: 0;
+    }
+
+    .wf-section {
+      padding: 10px 12px;
+    }
+
+    .wf-section + .wf-section {
+      border-top: 1px solid #F3F4F6;
+    }
+
+    .wf-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .wf-text-line {
+      height: 6px;
+      background: #E5E7EB;
+      border-radius: 3px;
+      margin-bottom: 4px;
+    }
+
+    .wf-title-line {
+      height: 10px;
+      background: #D1D5DB;
+      border-radius: 3px;
+      margin-bottom: 6px;
+    }
+
+    .wf-img {
+      background: #E5E7EB;
+      border-radius: 4px;
+    }
+
+    .wf-cta {
+      height: 22px;
+      background: #9CA3AF;
+      border-radius: 11px;
+      width: 80px;
+      margin: 6px auto 4px;
+    }
+
+    .wf-label {
+      font-size: 8px;
+      color: #9CA3AF;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .sidebar { width: 200px; }
+      .cards-grid.cols-5 { grid-template-columns: repeat(3, 1fr); }
+      .cards-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+      .density-cards { grid-template-columns: repeat(2, 1fr); }
+      .theme-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .wizard-right.visible { width: 0; }
+      .step-content { padding: 20px 20px; }
+      .cards-grid.cols-5 { grid-template-columns: repeat(2, 1fr); }
+      .form-grid { grid-template-columns: 1fr; }
+      .density-cards { grid-template-columns: repeat(2, 1fr); }
+      .theme-grid { grid-template-columns: repeat(2, 1fr); }
+      .step-title { font-size: 20px; }
+    }
+
+    /* Transitions */
+    .fade-in {
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Resizer */
+    .resizer {
+      width: 4px;
+      background: var(--border);
+      cursor: col-resize;
+      flex-shrink: 0;
+      transition: background 0.15s;
+      position: relative;
+    }
+    .resizer:hover { background: var(--blue); }
+    .resizer::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px;
+      height: 24px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ HOME SCREEN ═══════════════════ -->
+<div id="home">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <button class="sidebar-icon-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+      </button>
+      <button class="sidebar-icon-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      </button>
+    </div>
+
+    <div class="sidebar-tabs">
+      <div class="sidebar-tab">Chat</div>
+      <div class="sidebar-tab">Work</div>
+      <div class="sidebar-tab active">Code</div>
+    </div>
+
+    <div class="sidebar-nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New session
+    </div>
+    <div class="sidebar-nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Routines
+    </div>
+    <div class="sidebar-nav-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 12 2v2a8 8 0 0 1 5.66 2.34"/><path d="M2 12a10 10 0 0 0 2.93 7.07l1.41-1.41A8 8 0 0 1 4 12"/><path d="M12 22a10 10 0 0 0 7.07-2.93l-1.41-1.41A8 8 0 0 1 12 20"/><path d="M22 12a10 10 0 0 0-2.93-7.07l-1.41 1.41A8 8 0 0 1 20 12"/></svg>
+      Customize
+    </div>
+    <div class="sidebar-nav-item" style="color: var(--muted);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      More
+    </div>
+
+    <hr class="sidebar-divider" style="margin: 12px 0;">
+
+    <div class="sidebar-section-label">
+      Recents
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </div>
+
+    <div class="sidebar-recent-item">
+      <div class="recent-dot active"></div>
+      <span class="recent-text">Build interactive Claude Code UI pro...</span>
+    </div>
+    <div class="sidebar-recent-item">
+      <div class="recent-dot inactive"></div>
+      <span class="recent-text">Remove icons from design layout</span>
+    </div>
+    <div class="sidebar-recent-item">
+      <div class="recent-dot inactive"></div>
+      <span class="recent-text">Create interactive prototype</span>
+    </div>
+    <div class="sidebar-recent-item">
+      <div class="recent-dot inactive"></div>
+      <span class="recent-text">Split markdown files into smaller chu...</span>
+    </div>
+  </div>
+
+  <!-- Main area -->
+  <div class="home-main">
+    <div class="home-greeting">어서오세요! 오늘은 무엇을 만드실 건가요?</div>
+    <button class="home-cta-btn" id="openWizardBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      결과를 쉽게 만들기
+    </button>
+
+    <!-- Bottom input -->
+    <div class="home-bottom">
+      <div class="home-toolbar">
+        <button class="toolbar-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          Desktop
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <button class="toolbar-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          로컬에서 작업
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <button class="toolbar-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+          Main
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+      <div class="home-input-wrap">
+        <textarea class="home-input" placeholder="무엇이든 물어보세요. @(으)로 플러그인을 사용하거나 파일을 언급하세요." rows="1"></textarea>
+        <div class="home-input-actions">
+          <div style="display:flex;gap:4px;">
+            <button class="input-action-btn" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            </button>
+          </div>
+          <div class="input-right-actions">
+            <span class="model-badge">5.5 중간 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+            <button class="input-action-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <button class="submit-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ WIZARD ═══════════════════ -->
+<div id="wizard">
+  <!-- Header -->
+  <div class="wizard-header">
+    <button class="wizard-close-btn" id="closeWizardBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Close
+    </button>
+
+    <div class="wizard-progress">
+      <div class="progress-seg active" id="prog-1"></div>
+      <div class="progress-seg" id="prog-2"></div>
+      <div class="progress-seg" id="prog-3"></div>
+      <div class="progress-seg" id="prog-4"></div>
+      <div class="progress-seg" id="prog-5"></div>
+    </div>
+
+    <button class="wizard-canvas-btn" id="canvasToggleBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
+      Canvas
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="wizard-body">
+    <!-- Left panel -->
+    <div class="wizard-left full" id="wizardLeft">
+      <!-- Main content card -->
+      <div class="wizard-content-card" id="wizardContentCard">
+        <!-- Step nav inside card -->
+        <div class="step-nav">
+          <button class="btn-before" type="button" id="btnBefore">← Before</button>
+          <button class="btn-next" type="button" id="btnNext">Next →</button>
+        </div>
+
+        <!-- Step content area -->
+        <div class="step-content" id="stepContent">
+          <!-- Injected by JS -->
+        </div>
+
+      </div>
+
+      <!-- Panel resizer BETWEEN content card and prompt card -->
+      <div class="panel-resizer" id="panelResizer">
+        <div class="panel-resizer-handle"></div>
+      </div>
+
+      <!-- Bottom prompt card -->
+      <div class="wizard-prompt-area" id="wizardPromptArea">
+        <div class="prompt-loading" id="promptLoading">
+          <div class="loading-dots"><span></span><span></span><span></span></div>
+          AI가 분석 중이에요...
+        </div>
+        <div class="ai-response" id="aiResponse">
+          <span class="ai-badge">AI</span>
+          <span class="ai-response-text" id="aiResponseText"></span>
+        </div>
+        <div class="wizard-prompt-wrap">
+          <textarea class="wizard-prompt-input" id="wizardPromptInput" rows="1"
+            placeholder="어떤걸 선택할지 모르시겠다면 알고있는 내용을 입력해 주시면 AI가 분석해 알맞은 선택 제안해드려요."
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitPrompt();}"></textarea>
+          <div class="wizard-prompt-actions">
+            <button class="input-action-btn" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            </button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="input-action-btn" type="button">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+              </button>
+              <button class="submit-btn" type="button" style="width:28px;height:28px;" onclick="submitPrompt()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resizer -->
+    <div class="resizer" id="resizerEl" style="display:none;"></div>
+
+    <!-- Right panel (canvas) -->
+    <div class="wizard-right" id="wizardRight">
+      <div class="canvas-panel">
+        <div class="canvas-top-bar">
+          <button class="preview-toggle-btn active" id="btnWeb" onclick="setPreviewMode('web')">Web</button>
+          <button class="preview-toggle-btn" id="btnMobile" onclick="setPreviewMode('mobile')">Mobile</button>
+        </div>
+        <div class="canvas-area">
+          <div class="wireframe-container" id="wireframeContainer">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────
+const state = {
+  step: 1,
+  totalSteps: 5,
+  category: null,
+  purpose: null,
+  content: {
+    goal: '',
+    tone: '',
+    message: '',
+    sections: []
+  },
+  draft: [],
+  style: {
+    density: 'detailed',
+    theme: 'minimal'
+  },
+  previewMode: 'web',
+  canvasVisible: false,
+  tagsOpen: false
+};
+
+// ─── DATA ────────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  {
+    id: 'website',
+    title: 'Website',
+    desc: '회사나 서비스를 여러 페이지로 소개하는 기본형요. 소개, 블로그, 문의까지 한 곳에 담고 정보를 두루 보여주기 좋아요.'
+  },
+  {
+    id: 'landing',
+    title: 'Landing Page',
+    desc: '하나의 목표에 집중하는 한 장짜리 페이지에요. 이벤트나 신제품 홍보처럼 방문자를 한 행동으로 이끄는 데 효과적이에요.'
+  },
+  {
+    id: 'portfolio',
+    title: 'PortFolio',
+    desc: '작업물이나 경력을 보기 좋게 전시하는 페이지에요. 디자이너, 사진가, 나를 표현하고 결과물로 나타낼 때 잘 맞아요.'
+  },
+  {
+    id: 'store',
+    title: 'Store',
+    desc: '상품을 팔고 결제까지 받는 온라인 쇼핑몰요. 장바구니, 주문, 결제 흐름이 들어가 바로 판매를 시작할 수 있어요.'
+  },
+  {
+    id: 'app',
+    title: 'App',
+    desc: '로그인하고 데이터를 다루는 기능형 서비스에요. 대시보드나 내부 도구처럼 사용자가 직접 조작하는 화면이 많을 때 맞아요.'
+  }
+];
+
+const PURPOSES = {
+  landing: [
+    {
+      id: 'lead',
+      title: 'Lead / Signup',
+      desc: '방문자의 이메일이나 연락처를 받는 게 목표에요. 뉴스레터 구독, 자료 신청 등 정보를 모을 때 맞아요.'
+    },
+    {
+      id: 'sales',
+      title: 'Sales / Conversion',
+      desc: '구매나 신청으로 바로 이어지게 만드는 페이지에요. 제품을 설명하고 가장 직접 판매로 연결하고 싶을 때 사용해요.'
+    },
+    {
+      id: 'prelaunch',
+      title: 'Pre-launch / Buzz',
+      desc: '아직 나오지 않은 걸 미리 알리고 기대를 모아요. 출시 예고나 이미 만들어 두기가 미리 사람들을 붙잡아요.'
+    },
+    {
+      id: 'entry',
+      title: 'Entry / Splash',
+      desc: '사이트에 들어가기 전 잠깐 보여주는 안내 페이지에요. 공지나 언어 선택 버튼으로 한 단계를 거치게 해요.'
+    }
+  ]
+};
+
+const SECTION_OPTIONS = ['Hero', '혜택', 'CTA', '소개', 'FAQ', '후기', '가격', '팀', '기능'];
+
+const TONES = [
+  '미니멀 - 깔끔하고 군더더기 없이',
+  '전문적 - 신뢰감 있고 격식 있게',
+  '활기찬 - 에너지 넘치고 젊게',
+  '따뜻한 - 친근하고 감성적으로',
+  '대담한 - 강렬하고 자신감 있게'
+];
+
+const GOALS = ['판매, 마케팅', '정보 제공', '리드 수집', '브랜드 인지', '커뮤니티 구축'];
+
+const THEMES = [
+  { id: 'mercury',    name: 'Mercury',    color: '#EBEBEB' },
+  { id: 'terracotta', name: 'Terracotta', color: '#E8E8E8' },
+  { id: 'gleam',      name: 'Gleam',      color: '#EBEBEB' },
+  { id: 'icebreaker', name: 'IceBreaker', color: '#E8E8E8' },
+  { id: 'alien',      name: 'Alien',      color: '#EBEBEB' },
+  { id: 'goldleaf',   name: 'Gold Leaf',  color: '#E8E8E8' },
+  { id: 'maximum',    name: 'Maximum',    color: '#EBEBEB' },
+  { id: 'minimal',    name: 'Minimal',    color: '#F5F5F5' }
+];
+
+// ─── ICON SVG ─────────────────────────────────────────────────────────────
+function cardIconSVG() {
+  return `<svg class="card-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="18" cy="18" r="14" fill="#111827"/>
+    <path d="M18 4 A14 14 0 0 1 32 18 L18 18 Z" fill="white"/>
+    <circle cx="26" cy="10" r="5" fill="white"/>
+  </svg>`;
+}
+
+// ─── RENDER STEPS ────────────────────────────────────────────────────────
+function renderStep1() {
+  const cats = CATEGORIES.map(c => `
+    <div class="select-card ${state.category === c.id ? 'selected' : ''}"
+         onclick="selectCategory('${c.id}')">
+      ${cardIconSVG()}
+      <div class="card-title">${c.title}</div>
+      <div class="card-desc">${c.desc}</div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="fade-in">
+      <h2 class="step-title">만드시려는 제품은 어떤 카테고리세요?</h2>
+      <p class="step-subtitle">제품의 카테고리를 잘 모르겠다면 프롬프트에 적어주세요!<br>알맞은 카테고리를 골라드려요</p>
+      <div class="cards-grid cols-5">${cats}</div>
+    </div>
+  `;
+}
+
+function renderStep2() {
+  const purposes = (PURPOSES[state.category] || PURPOSES.landing).map(p => `
+    <div class="select-card ${state.purpose === p.id ? 'selected' : ''}"
+         onclick="selectPurpose('${p.id}')">
+      ${cardIconSVG()}
+      <div class="card-title">${p.title}</div>
+      <div class="card-desc">${p.desc}</div>
+    </div>
+  `).join('');
+
+  const catName = CATEGORIES.find(c => c.id === state.category)?.title || 'Landing Page';
+
+  return `
+    <div class="fade-in">
+      <h2 class="step-title">${catName}를 어떤 목적으로 만드시나요?</h2>
+      <p class="step-subtitle">제품의 카테고리를 잘 모르겠다면 프롬프트에 적어주세요!<br>알맞은 카테고리를 골라드려요</p>
+      <div class="cards-grid cols-4">${purposes}</div>
+    </div>
+  `;
+}
+
+function renderStep3() {
+  const goalOptions = GOALS.map(g =>
+    `<option value="${g}" ${state.content.goal === g ? 'selected' : ''}>${g}</option>`
+  ).join('');
+
+  const toneOptions = TONES.map(t =>
+    `<option value="${t}" ${state.content.tone === t ? 'selected' : ''}>${t}</option>`
+  ).join('');
+
+  const tags = state.content.sections.map(s => `
+    <span class="tag-chip">
+      ${s}
+      <button onclick="event.stopPropagation();removeSection('${s}')" type="button">×</button>
+    </span>
+  `).join('');
+
+  const dropdownItems = SECTION_OPTIONS.map(s => {
+    const sel = state.content.sections.includes(s);
+    return `<div class="tags-dropdown-item ${sel ? 'selected' : ''}"
+      onclick="event.stopPropagation();toggleSection('${s}')">
+      <span>${s}</span>
+      ${sel ? `<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="fade-in">
+      <h2 class="step-title">어떤 내용의 Landing Page를 만들고 싶으세요?</h2>
+      <p class="step-subtitle">순서대로 입력해주세요</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">페이지 목표</label>
+          <select class="form-select" onchange="updateContent('goal', this.value)">
+            <option value="">선택 안함</option>
+            ${goalOptions}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">톤 &amp; 분위기</label>
+          <select class="form-select" onchange="updateContent('tone', this.value)">
+            <option value="">선택 안함</option>
+            ${toneOptions}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">핵심 메시지</label>
+          <div class="form-input-wrap">
+            <input class="form-input ${state.content.message.length > 50 ? 'over' : ''}" type="text"
+              placeholder="내용을 입력해 주세요."
+              maxlength="60"
+              value="${state.content.message}"
+              oninput="updateContent('message', this.value)">
+            ${state.content.message ? `<button class="form-input-clear" onclick="clearMessage()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </button>` : ''}
+          </div>
+          <div class="input-footer">
+            <span></span>
+            <span class="char-counter ${state.content.message.length > 50 ? 'over' : state.content.message.length > 35 ? 'warn' : ''}">
+              ${state.content.message.length > 0 ? `${state.content.message.length}/50` : ''}
+            </span>
+          </div>
+        </div>
+        <div class="form-group" style="position:relative;">
+          <label class="form-label">들어갈 섹션</label>
+          <div class="tags-wrap ${state.tagsOpen ? 'open' : ''}" id="tagsWrap" onclick="toggleTagsDropdown(event)">
+            ${tags}
+            <svg class="tags-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            <div class="tags-dropdown ${state.tagsOpen ? 'open' : ''}" id="tagsDropdown">
+              ${dropdownItems}
+            </div>
+          </div>
+          ${state.content.sections.length >= 5 ? `
+            <div class="section-warning">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              섹션이 너무 많으면 페이지가 길어져 집중도가 떨어질 수 있어요. 핵심만 남겨보세요.
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderStep4() {
+  const sections = state.draft.map((sec, i) => `
+    <div class="draft-section fade-in" id="draft-${sec.id}"
+         draggable="true"
+         ondragstart="dndStart(event,${sec.id})"
+         ondragend="dndEnd(event)"
+         ondragover="dndOver(event,${sec.id})"
+         ondragleave="dndLeave(event)"
+         ondrop="dndDrop(event,${sec.id})">
+      <div class="draft-section-header">
+        <div class="draft-drag-handle"
+             onmousedown="event.stopPropagation()"
+             title="드래그하여 순서 변경">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+        </div>
+        <div class="draft-num">${i + 1}</div>
+        <div class="draft-section-body">
+          <div contenteditable="true" class="draft-section-title"
+               oninput="updateDraftTitle(${sec.id}, this.innerText)">${sec.title}</div>
+          ${sec.bullets.length > 0 ? `
+            <ul class="draft-section-bullets">
+              ${sec.bullets.map(b => `<li contenteditable="true">${b}</li>`).join('')}
+            </ul>
+          ` : `
+            <div contenteditable="true" class="draft-section-content"
+                 oninput="updateDraftContent(${sec.id}, this.innerText)">${sec.content || '순서대로 입력해주세요'}</div>
+          `}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="fade-in">
+      <div class="draft-header">
+        <h2>AI가 앞선 내용으로 작성해드렸어요.<br>수정하고 싶은 부분 혹은 상세내역을 안에서 직접 수정할 수 있어요.</h2>
+      </div>
+      ${sections}
+      <div class="draft-actions">
+        <button class="btn-delete" onclick="deleteLastSection()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Delete
+        </button>
+        <button class="btn-add" onclick="addNewSection()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Add
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderStep5() {
+  // line configs: [col1 widths, col2 widths (if 2-col)]
+  const densities = [
+    { id: 'minimal',   name: 'Minimal',
+      cols: [[ 90, 60, 75, 45 ]] },
+    { id: 'concise',   name: 'Concise',
+      cols: [[ 90, 55, 80, 40, 70 ]] },
+    { id: 'detailed',  name: 'Detailed',
+      cols: [[ 85, 60, 75, 50, 65, 40 ], [ 80, 55, 70, 45, 60, 35 ]] },
+    { id: 'extensive', name: 'Extensive',
+      cols: [[ 90, 65, 80, 55, 75, 45, 70, 35 ], [ 85, 60, 78, 50, 72, 40, 65, 30 ]] }
+  ];
+
+  const densityCards = densities.map(d => `
+    <div class="density-card ${state.style.density === d.id ? 'selected' : ''}"
+         onclick="selectDensity('${d.id}')">
+      <div class="density-preview">
+        ${d.cols.map(col => `
+          <div class="density-preview-col">
+            ${col.map(w => `<div class="density-line" style="width:${w}%"></div>`).join('')}
+          </div>
+        `).join('')}
+      </div>
+      <div class="density-title">${d.name}</div>
+      <div class="density-desc">Example of a card's description. Stick to one or two sentences.</div>
+    </div>
+  `).join('');
+
+  const themeCards = THEMES.map(t => `
+    <div class="theme-card ${state.style.theme === t.id ? 'selected' : ''}"
+         onclick="selectTheme('${t.id}')">
+      <div class="theme-swatch" style="background:${t.color}"></div>
+      <div class="theme-name">${t.name}</div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="fade-in">
+      <h2 class="step-title">구체적으로 어떻게 만드실래요?</h2>
+      <p class="step-subtitle">글의 양 디자인 컨셉 등 직접 정하고 수정할 수 있어요</p>
+
+      <div class="style-section-label">Text Content</div>
+      <div class="density-cards">${densityCards}</div>
+
+      <div class="style-section-label">Visuals</div>
+      <div class="style-subsection-label">Theme</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Use one of our popular themes below or view more</p>
+      <div class="theme-grid">${themeCards}</div>
+    </div>
+  `;
+}
+
+// ─── WIREFRAME RENDER ────────────────────────────────────────────────────
+function renderWireframe() {
+  const container = document.getElementById('wireframeContainer');
+  const isMobile = state.previewMode === 'mobile';
+
+  const sections = state.content.sections;
+  const hasHero = sections.includes('Hero') || sections.length === 0;
+  const hasBenefit = sections.includes('혜택');
+  const hasCTA = sections.includes('CTA');
+  const theme = THEMES.find(t => t.id === state.style.theme);
+  const bgColor = state.step >= 5 && theme ? theme.color : '#fff';
+  const accentColor = state.style.theme === 'maximum' ? '#fff' :
+                      state.style.theme === 'minimal' ? '#111' :
+                      state.style.theme === 'icebreaker' ? '#2563EB' : '#111';
+
+  let bodyContent = '';
+
+  if (state.step >= 2) {
+    // Hero section
+    bodyContent += `
+      <div class="wf-section">
+        <div class="wf-row">
+          <div class="wf-img" style="flex:2;height:52px;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+            <div class="wf-img" style="height:24px;"></div>
+            <div class="wf-img" style="height:24px;"></div>
+          </div>
+        </div>
+        ${state.step >= 3 && state.content.message ? `
+          <div class="wf-label">${state.content.message.substring(0, 20)}...</div>
+        ` : ''}
+        <div class="wf-title-line" style="width:70%"></div>
+        <div class="wf-text-line" style="width:90%"></div>
+        <div class="wf-text-line" style="width:80%"></div>
+        <div class="wf-text-line" style="width:85%"></div>
+      </div>
+    `;
+  }
+
+  if (state.step >= 3 || state.step >= 2) {
+    // Features / Benefits
+    bodyContent += `
+      <div class="wf-section">
+        <div class="wf-title-line" style="width:40%;margin:0 auto 8px;"></div>
+        <div class="wf-row" style="gap:5px;">
+          <div style="flex:1;">
+            <div class="wf-img" style="height:40px;margin-bottom:5px;"></div>
+            <div class="wf-label">Title</div>
+            <div class="wf-text-line" style="width:90%"></div>
+            <div class="wf-text-line" style="width:80%"></div>
+            <div class="wf-text-line" style="width:85%"></div>
+          </div>
+          <div style="flex:1;">
+            <div class="wf-img" style="height:40px;margin-bottom:5px;"></div>
+            <div class="wf-label">Title</div>
+            <div class="wf-text-line" style="width:90%"></div>
+            <div class="wf-text-line" style="width:80%"></div>
+            <div class="wf-text-line" style="width:85%"></div>
+          </div>
+          <div style="flex:1;">
+            <div class="wf-img" style="height:40px;margin-bottom:5px;"></div>
+            <div class="wf-label">Title</div>
+            <div class="wf-text-line" style="width:90%"></div>
+            <div class="wf-text-line" style="width:80%"></div>
+            <div class="wf-text-line" style="width:85%"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (state.step >= 4) {
+    // Details section
+    bodyContent += `
+      <div class="wf-section">
+        <div class="wf-img" style="height:60px;margin-bottom:8px;"></div>
+        <div class="wf-label">Title</div>
+        <div class="wf-text-line" style="width:95%"></div>
+        <div class="wf-text-line" style="width:90%"></div>
+        <div class="wf-text-line" style="width:85%"></div>
+        <div class="wf-text-line" style="width:92%"></div>
+      </div>
+    `;
+  }
+
+  // CTA
+  if (hasCTA || state.step >= 3) {
+    bodyContent += `
+      <div class="wf-section" style="text-align:center;">
+        <div class="wf-cta" style="background:${accentColor};opacity:0.7;"></div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="wireframe-device ${isMobile ? 'mobile' : ''}">
+      <div class="wireframe-chrome">Promotion</div>
+      <div class="wireframe-body" style="background:${bgColor};">
+        ${bodyContent || `
+          <div class="wf-section" style="height:80px;display:flex;align-items:center;justify-content:center;">
+            <div style="font-size:11px;color:#9CA3AF;">카테고리를 선택하면 미리보기가 나타나요</div>
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+// ─── STATE MUTATIONS ──────────────────────────────────────────────────────
+function selectCategory(id) {
+  state.category = id;
+  renderCurrentStep();
+  updateNextBtn();
+}
+
+function selectPurpose(id) {
+  state.purpose = id;
+  renderCurrentStep();
+  renderWireframe();
+  updateNextBtn();
+}
+
+function updateContent(key, value) {
+  state.content[key] = value;
+  renderWireframe();
+  updateNextBtn();
+}
+
+function clearMessage() {
+  state.content.message = '';
+  renderCurrentStep();
+  renderWireframe();
+}
+
+// ─── TAGS DROPDOWN ───────────────────────────────────────────────────────
+function toggleTagsDropdown(e) {
+  if (e) e.stopPropagation();
+  state.tagsOpen = !state.tagsOpen;
+  applyTagsOpenState();
+  if (state.tagsOpen) {
+    setTimeout(() => document.addEventListener('click', outsideTagsHandler), 0);
+  } else {
+    document.removeEventListener('click', outsideTagsHandler);
+  }
+}
+
+function outsideTagsHandler(e) {
+  const wrap = document.getElementById('tagsWrap');
+  if (!wrap || !wrap.contains(e.target)) {
+    state.tagsOpen = false;
+    applyTagsOpenState();
+    document.removeEventListener('click', outsideTagsHandler);
+  }
+}
+
+function applyTagsOpenState() {
+  const wrap = document.getElementById('tagsWrap');
+  const dropdown = document.getElementById('tagsDropdown');
+  if (!wrap || !dropdown) return;
+  wrap.classList.toggle('open', state.tagsOpen);
+  dropdown.classList.toggle('open', state.tagsOpen);
+}
+
+function toggleSection(s) {
+  if (state.content.sections.includes(s)) {
+    state.content.sections = state.content.sections.filter(x => x !== s);
+  } else {
+    state.content.sections.push(s);
+  }
+  renderCurrentStep();       // rebuilds DOM (keeps state.tagsOpen)
+  applyTagsOpenState();      // re-apply open class after rebuild
+  renderWireframe();
+  updateNextBtn();
+}
+
+function addSection(s) { toggleSection(s); }
+
+function removeSection(s) {
+  state.content.sections = state.content.sections.filter(x => x !== s);
+  renderCurrentStep();
+  applyTagsOpenState();
+  renderWireframe();
+  updateNextBtn();
+}
+
+function updateDraftTitle(id, text) {
+  const sec = state.draft.find(s => s.id === id);
+  if (sec) sec.title = text;
+  renderWireframe();
+}
+
+function updateDraftContent(id, text) {
+  const sec = state.draft.find(s => s.id === id);
+  if (sec) sec.content = text;
+  renderWireframe();
+}
+
+function deleteLastSection() {
+  if (state.draft.length > 0) {
+    state.draft.pop();
+    renderCurrentStep();
+    renderWireframe();
+  }
+}
+
+function addNewSection() {
+  const newId = Math.max(...state.draft.map(s => s.id), 0) + 1;
+  state.draft.push({
+    id: newId,
+    title: '새 섹션 제목을 입력하세요',
+    content: '내용을 입력해주세요',
+    bullets: []
+  });
+  renderCurrentStep();
+  renderWireframe();
+}
+
+function selectDensity(id) {
+  state.style.density = id;
+  renderCurrentStep();
+  renderWireframe();
+}
+
+function selectTheme(id) {
+  state.style.theme = id;
+  renderCurrentStep();
+  renderWireframe();
+}
+
+function setPreviewMode(mode) {
+  state.previewMode = mode;
+  document.getElementById('btnWeb').classList.toggle('active', mode === 'web');
+  document.getElementById('btnMobile').classList.toggle('active', mode === 'mobile');
+  renderWireframe();
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────
+function goNext() {
+  if (state.step < state.totalSteps) {
+    state.step++;
+    if (state.step === 4) {
+      state.draft = generateDraft();
+    }
+    updateWizardLayout();
+    renderCurrentStep();
+    updateProgress();
+    renderWireframe();
+    scrollTop();
+    updateNextBtn();
+  }
+}
+
+function goBefore() {
+  if (state.step > 1) {
+    state.step--;
+    updateWizardLayout();
+    renderCurrentStep();
+    updateProgress();
+    renderWireframe();
+    scrollTop();
+    updateNextBtn();
+  } else {
+    closeWizard();
+  }
+}
+
+function scrollTop() {
+  const content = document.getElementById('stepContent');
+  if (content) content.scrollTop = 0;
+}
+
+function updateWizardLayout() {
+  const wizLeft = document.getElementById('wizardLeft');
+  const wizRight = document.getElementById('wizardRight');
+  const resizer = document.getElementById('resizerEl');
+  const canvasBtn = document.getElementById('canvasToggleBtn');
+  const promptArea = document.getElementById('wizardPromptArea');
+  const promptInput = document.getElementById('wizardPromptInput');
+
+  const showCanvas = state.step >= 2;
+  state.canvasVisible = showCanvas;
+
+  if (showCanvas) {
+    wizLeft.classList.remove('full');
+    wizRight.classList.add('visible');
+    resizer.style.display = 'block';
+    canvasBtn.classList.add('active');
+  } else {
+    wizLeft.classList.add('full');
+    wizRight.classList.remove('visible');
+    resizer.style.display = 'none';
+    canvasBtn.classList.remove('active');
+  }
+
+  // Long-content steps should not vertically center
+  const stepContent = document.getElementById('stepContent');
+  if (stepContent) {
+    if (state.step >= 4) {
+      stepContent.classList.add('no-center');
+    } else {
+      stepContent.classList.remove('no-center');
+    }
+  }
+
+  updateNextBtn();
+
+  // Update prompt placeholder per step
+  const placeholders = {
+    1: '어떤걸 선택할지 모르시겠다면 알고있는 내용을 입력해 주시면 AI가 분석해 알맞은 선택 제안해드려요.',
+    2: '어떤걸 선택할지 모르시겠다면 알고있는 내용을 입력해 주시면 AI가 분석해 알맞은 선택 제안해드려요.',
+    3: '어떤걸 선택할지 모르시겠다면 알고있는 내용을 입력해 주시면 AI가 분석해 알맞은 선택 제안해드려요.',
+    4: '방향성이나 내용 구성을 수정하고 싶으시면 작성해주세요',
+    5: '방향성이나 내용 구성을 수정하고 싶으시면 작성해주세요'
+  };
+  if (promptInput) promptInput.placeholder = placeholders[state.step] || '';
+}
+
+function updateProgress() {
+  for (let i = 1; i <= 5; i++) {
+    const seg = document.getElementById(`prog-${i}`);
+    if (seg) seg.classList.toggle('active', i <= state.step);
+  }
+}
+
+function renderCurrentStep() {
+  const content = document.getElementById('stepContent');
+  if (!content) return;
+  const renderers = { 1: renderStep1, 2: renderStep2, 3: renderStep3, 4: renderStep4, 5: renderStep5 };
+  content.innerHTML = renderers[state.step] ? renderers[state.step]() : '';
+}
+
+// ─── WIZARD OPEN/CLOSE ───────────────────────────────────────────────────
+function openWizard() {
+  state.step = 1;
+  state.category = null;
+  state.purpose = null;
+  state.content = { goal: '', tone: '', message: '', sections: [] };
+  state.tagsOpen = false;
+  document.removeEventListener('click', outsideTagsHandler);
+  document.getElementById('wizard').classList.add('visible');
+  document.getElementById('home').style.display = 'none';
+  updateWizardLayout();
+  renderCurrentStep();
+  updateProgress();
+  renderWireframe();
+  document.getElementById('btnNext').disabled = true;
+}
+
+function updateNextBtn() {
+  const btn = document.getElementById('btnNext');
+  if (!btn) return;
+  if (state.step === 1) {
+    btn.disabled = !state.category;
+  } else if (state.step === 2) {
+    btn.disabled = !state.purpose;
+  } else if (state.step === 3) {
+    const hasAny = state.content.goal || state.content.tone ||
+                   state.content.message || state.content.sections.length > 0;
+    btn.disabled = !hasAny;
+  } else {
+    btn.disabled = false;
+  }
+}
+
+function closeWizard() {
+  document.getElementById('wizard').classList.remove('visible');
+  document.getElementById('home').style.display = 'flex';
+}
+
+// ─── RESIZER ──────────────────────────────────────────────────────────────
+function initResizer() {
+  const resizer = document.getElementById('resizerEl');
+  const wizLeft = document.getElementById('wizardLeft');
+  const wizRight = document.getElementById('wizardRight');
+  let isResizing = false;
+  let startX = 0;
+  let startLeftWidth = 0;
+
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startX = e.clientX;
+    startLeftWidth = wizLeft.getBoundingClientRect().width;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const dx = e.clientX - startX;
+    const totalWidth = wizLeft.parentElement.getBoundingClientRect().width;
+    const newLeftWidth = Math.min(Math.max(startLeftWidth + dx, 300), totalWidth - 300);
+    const newRightWidth = totalWidth - newLeftWidth - 4;
+    wizLeft.style.flex = 'none';
+    wizLeft.style.width = newLeftWidth + 'px';
+    wizRight.style.width = newRightWidth + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
+}
+
+// ─── CANVAS TOGGLE ────────────────────────────────────────────────────────
+function toggleCanvas() {
+  if (state.step < 2) return;
+  const wizRight = document.getElementById('wizardRight');
+  const resizer = document.getElementById('resizerEl');
+  const canvasBtn = document.getElementById('canvasToggleBtn');
+  const isVisible = wizRight.classList.contains('visible');
+
+  if (isVisible) {
+    wizRight.classList.remove('visible');
+    resizer.style.display = 'none';
+    canvasBtn.classList.remove('active');
+  } else {
+    wizRight.classList.add('visible');
+    resizer.style.display = 'block';
+    canvasBtn.classList.add('active');
+    renderWireframe();
+  }
+}
+
+// ─── BOTTOM PROMPT AI ─────────────────────────────────────────────────────
+function submitPrompt() {
+  const input = document.getElementById('wizardPromptInput');
+  const text = input?.value.trim();
+  if (!text) return;
+
+  const loading = document.getElementById('promptLoading');
+  const response = document.getElementById('aiResponse');
+  const responseText = document.getElementById('aiResponseText');
+  if (response) response.classList.remove('visible');
+  if (loading) loading.classList.add('visible');
+  input.value = '';
+  input.style.height = 'auto';
+
+  setTimeout(() => {
+    if (loading) loading.classList.remove('visible');
+    const result = processPromptInput(text, state.step);
+    if (responseText) responseText.textContent = result.message;
+    if (response) response.classList.add('visible');
+    if (result.action) applyPromptAction(result);
+  }, 900);
+}
+
+function processPromptInput(text, step) {
+  const t = text.toLowerCase();
+  const has = (...kws) => kws.some(k => t.includes(k));
+
+  if (step === 1) {
+    if (has('랜딩', '이벤트', '프로모션', '할인', '쿠폰', '세일', '런칭'))
+      return { action: 'selectCategory', value: 'landing', message: '입력 내용을 분석했어요. Landing Page가 가장 적합해 보여서 선택해드렸어요!' };
+    if (has('쇼핑', '쇼핑몰', '상품', '스토어', '판매'))
+      return { action: 'selectCategory', value: 'store', message: '판매가 목적이라면 Store가 잘 맞아요. 선택해드렸어요!' };
+    if (has('포트폴리오', '작업물', '디자이너', '개발자', '작품'))
+      return { action: 'selectCategory', value: 'portfolio', message: '작업물 소개라면 PortFolio가 딱이에요. 선택해드렸어요!' };
+    if (has('앱', '서비스', '대시보드', '로그인', '회원'))
+      return { action: 'selectCategory', value: 'app', message: '기능형 서비스라면 App 카테고리가 맞아요. 선택해드렸어요!' };
+    if (has('회사', '블로그', '소개', '웹사이트'))
+      return { action: 'selectCategory', value: 'website', message: '다양한 정보를 담으려면 Website가 좋아요. 선택해드렸어요!' };
+    return { action: null, message: '만들려는 제품이 무엇인지 조금 더 알려주시면 더 잘 골라드릴 수 있어요!' };
+  }
+
+  if (step === 2) {
+    if (has('판매', '구매', '할인', '쿠폰', '지금 바로', '전환'))
+      return { action: 'selectPurpose', value: 'sales', message: 'Sales / Conversion이 딱 맞아요. 바로 선택해드렸어요!' };
+    if (has('이메일', '신청', '가입', '구독', '리드'))
+      return { action: 'selectPurpose', value: 'lead', message: '이메일이나 신청을 받으려면 Lead / Signup이에요. 선택해드렸어요!' };
+    if (has('출시', '오픈', '런칭', '사전예약', '예약'))
+      return { action: 'selectPurpose', value: 'prelaunch', message: '곧 나올 것을 미리 알리는 Pre-launch / Buzz가 좋아요. 선택해드렸어요!' };
+    if (has('입장', '안내', '공지', '처음'))
+      return { action: 'selectPurpose', value: 'entry', message: 'Entry / Splash로 첫 화면을 만들어드릴게요. 선택해드렸어요!' };
+    return { action: null, message: '어떤 목적으로 만드시는지 조금 더 알려주시면 더 잘 골라드릴 수 있어요!' };
+  }
+
+  if (step === 3) {
+    const secs = ['Hero'];
+    if (has('혜택', '할인', '쿠폰', '특가', '이득')) secs.push('혜택');
+    if (has('cta', '신청', '구매', '지금', '바로')) secs.push('CTA');
+    if (has('후기', '리뷰', '추천', '고객')) secs.push('후기');
+    if (has('faq', '자주', '질문', '궁금')) secs.push('FAQ');
+    if (has('가격', '비용', '요금', '플랜')) secs.push('가격');
+    const msg = text.length > 50 ? text.substring(0, 50) : text;
+    return {
+      action: 'fillContent',
+      values: { message: msg, sections: [...new Set(secs)] },
+      message: `핵심 메시지와 섹션 구성을 분석해 채워드렸어요. 필요하면 직접 수정해보세요!`
+    };
+  }
+
+  if (step === 4) {
+    return { action: 'regenDraft', values: { hint: text }, message: `"${text.substring(0,20)}${text.length>20?'…':''}" 내용을 반영해 초안을 다시 만들어드릴게요.` };
+  }
+
+  return { action: null, message: '궁금한 점이 있으면 언제든지 알려주세요!' };
+}
+
+function applyPromptAction(result) {
+  if (result.action === 'selectCategory') {
+    state.category = result.value;
+    renderCurrentStep();
+    updateNextBtn();
+  } else if (result.action === 'selectPurpose') {
+    state.purpose = result.value;
+    renderCurrentStep();
+    renderWireframe();
+    updateNextBtn();
+  } else if (result.action === 'fillContent') {
+    const v = result.values;
+    if (v.message) state.content.message = v.message;
+    if (v.sections) state.content.sections = v.sections;
+    if (!state.content.goal) state.content.goal = '판매, 마케팅';
+    if (!state.content.tone) state.content.tone = '미니멀 - 깔끔하고 군더더기 없이';
+    renderCurrentStep();
+    renderWireframe();
+    updateNextBtn();
+  } else if (result.action === 'regenDraft') {
+    if (result.values?.hint) state.content.message = result.values.hint.substring(0,50);
+    state.draft = generateDraft();
+    renderCurrentStep();
+  }
+}
+
+// ─── DRAFT GENERATOR ──────────────────────────────────────────────────────
+function generateDraft() {
+  const msg = state.content.message;
+  const secs = state.content.sections;
+  const hasSec = (n) => secs.includes(n) || secs.length === 0;
+  const draft = [];
+  let id = 1;
+
+  // Hero
+  if (hasSec('Hero')) {
+    draft.push({
+      id: id++,
+      title: msg || '딱 오늘만, 전 품목 50% 쿠폰',
+      content: msg
+        ? `${msg} — 지금 이 순간이 가장 좋은 타이밍이에요.`
+        : '매년 돌아오는 단 하루의 기회. 지금 바로 확인해보세요.',
+      bullets: []
+    });
+  }
+
+  // 혜택
+  if (hasSec('혜택')) {
+    draft.push({
+      id: id++,
+      title: '이 혜택, 오늘 놓치면 내년까지 기다려야 해요',
+      content: '',
+      bullets: [
+        '역대 최대 할인 — 인기 상품부터 신상품까지 전 품목 적용돼요',
+        '추가 쿠폰 중복 적용 가능 — 이 조건, 평소엔 절대 없어요',
+        '오늘 자정까지만 유효 — 내일이면 정가로 돌아가요'
+      ]
+    });
+  }
+
+  // FAQ
+  if (hasSec('FAQ')) {
+    draft.push({
+      id: id++,
+      title: '자주 묻는 질문',
+      content: '',
+      bullets: [
+        '쿠폰은 어떻게 받나요? — 아래 버튼을 누르면 즉시 발급돼요',
+        '다른 할인과 중복 적용되나요? — 일부 상품 제외, 중복 가능해요',
+        '환불은 어떻게 하나요? — 구매 후 7일 이내 100% 환불 보장이에요'
+      ]
+    });
+  }
+
+  // 소개
+  if (hasSec('소개')) {
+    draft.push({
+      id: id++,
+      title: '왜 지금 우리 브랜드인가요?',
+      content: '',
+      bullets: [
+        '2019년부터 누적 고객 50만 명이 선택한 브랜드예요',
+        '고객 만족도 98% — 리뷰가 증명해요',
+        '국내 직영 공장 생산 — 품질이 다르게 느껴질 거예요'
+      ]
+    });
+  }
+
+  // CTA
+  if (hasSec('CTA')) {
+    draft.push({
+      id: id++,
+      title: '지금 바로 쿠폰 받고 시작하기',
+      content: '',
+      bullets: [
+        '버튼 하나로 즉시 발급 — 회원가입 없이 바로 받아가세요',
+        '지금 공유하면 추가 쿠폰 증정 — 친구랑 같이 혜택 누리세요',
+        '재고 소진 시 자동 종료 — 서두르는 게 이득이에요'
+      ]
+    });
+  }
+
+  // 후기
+  if (hasSec('후기')) {
+    draft.push({
+      id: id++,
+      title: '먼저 사용해본 고객들의 이야기',
+      content: '',
+      bullets: [
+        '"처음엔 반신반의했는데 이제 정기구매 중이에요" — 김○○, 30대 직장인',
+        '"이 가격에 이 퀄리티는 진짜 처음 봤어요" — 이○○, 20대 학생',
+        '"가족한테도 다 추천했어요, 아무도 후회 안 해요" — 박○○, 40대 주부'
+      ]
+    });
+  }
+
+  // 가격
+  if (hasSec('가격')) {
+    draft.push({
+      id: id++,
+      title: '오늘만 이 가격, 내일은 없어요',
+      content: '',
+      bullets: [
+        '정가 59,000원 → 오늘만 29,500원 (50% 할인)',
+        '10개 이상 구매 시 추가 5% 할인 적용',
+        '결제 금액에 상관없이 무료 배송 제공'
+      ]
+    });
+  }
+
+  // 팀
+  if (hasSec('팀')) {
+    draft.push({
+      id: id++,
+      title: '이 제품을 만든 사람들',
+      content: '',
+      bullets: [
+        '10년 경력의 전문가들이 직접 기획하고 개발했어요',
+        '고객 피드백을 반영해 매달 업데이트되고 있어요',
+        '구매 후 1:1 전담 CS로 언제든 도움받을 수 있어요'
+      ]
+    });
+  }
+
+  // 기능
+  if (hasSec('기능')) {
+    draft.push({
+      id: id++,
+      title: '이걸 가능하게 만들어드려요',
+      content: '',
+      bullets: [
+        '복잡한 설정 없이 5분 안에 시작할 수 있어요',
+        '모바일 / PC 어디서든 동일한 경험을 드려요',
+        '데이터는 안전하게 암호화되어 보호돼요'
+      ]
+    });
+  }
+
+  // 기본값: 섹션이 아무것도 없을 때
+  if (draft.length === 0) {
+    return [
+      {
+        id: 1,
+        title: msg || '딱 오늘만, 전 품목 50% 쿠폰',
+        content: '매년 돌아오는 단 하루의 기회. 지금 바로 확인해보세요.',
+        bullets: []
+      },
+      {
+        id: 2,
+        title: '이 혜택, 오늘 놓치면 내년까지 기다려야 해요',
+        content: '',
+        bullets: [
+          '역대 최대 할인 — 인기 상품부터 신상품까지 전 품목 적용돼요',
+          '추가 쿠폰 중복 적용 가능 — 이 조건, 평소엔 절대 없어요',
+          '오늘 자정까지만 유효 — 내일이면 정가로 돌아가요'
+        ]
+      },
+      {
+        id: 3,
+        title: '지금 바로 쿠폰 받고 시작하기',
+        content: '',
+        bullets: [
+          '버튼 하나로 즉시 발급 — 회원가입 없이 바로 받아가세요',
+          '지금 공유하면 추가 쿠폰 증정 — 친구랑 같이 혜택 누리세요',
+          '재고 소진 시 자동 종료 — 서두르는 게 이득이에요'
+        ]
+      }
+    ];
+  }
+
+  return draft;
+}
+
+// ─── DRAG & DROP (step 4 sections) ────────────────────────────────────────
+let _dndSrcId = null;
+
+function dndStart(e, id) {
+  _dndSrcId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  setTimeout(() => {
+    const el = document.getElementById(`draft-${id}`);
+    if (el) el.classList.add('dragging');
+  }, 0);
+}
+
+function dndEnd(e) {
+  document.querySelectorAll('.draft-section').forEach(el => {
+    el.classList.remove('dragging', 'drag-over');
+  });
+  _dndSrcId = null;
+}
+
+function dndOver(e, id) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.draft-section').forEach(el => el.classList.remove('drag-over'));
+  if (_dndSrcId !== id) {
+    document.getElementById(`draft-${id}`)?.classList.add('drag-over');
+  }
+}
+
+function dndLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function dndDrop(e, targetId) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (_dndSrcId === null || _dndSrcId === targetId) return;
+  const srcIdx = state.draft.findIndex(s => s.id === _dndSrcId);
+  const dstIdx = state.draft.findIndex(s => s.id === targetId);
+  if (srcIdx === -1 || dstIdx === -1) return;
+  const [item] = state.draft.splice(srcIdx, 1);
+  state.draft.splice(dstIdx, 0, item);
+  renderCurrentStep();
+}
+
+// ─── PANEL RESIZER (vertical) ─────────────────────────────────────────────
+function initPanelResizer() {
+  const resizer = document.getElementById('panelResizer');
+  const contentCard = document.getElementById('wizardContentCard');
+  const promptArea = document.getElementById('wizardPromptArea');
+  if (!resizer) return;
+
+  let isResizing = false;
+  let startY = 0;
+  let startContentH = 0;
+  let startPromptH = 0;
+
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startY = e.clientY;
+    startContentH = contentCard.getBoundingClientRect().height;
+    startPromptH = promptArea.getBoundingClientRect().height;
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const dy = e.clientY - startY;
+    const newContentH = Math.max(160, startContentH + dy);
+    const newPromptH = Math.max(72, startPromptH - dy);
+    contentCard.style.flex = 'none';
+    contentCard.style.height = newContentH + 'px';
+    promptArea.style.flex = 'none';
+    promptArea.style.height = newPromptH + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isResizing) return;
+    isResizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+
+  // Touch support
+  resizer.addEventListener('touchstart', (e) => {
+    isResizing = true;
+    startY = e.touches[0].clientY;
+    startContentH = contentCard.getBoundingClientRect().height;
+    startPromptH = promptArea.getBoundingClientRect().height;
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!isResizing) return;
+    const dy = e.touches[0].clientY - startY;
+    const newContentH = Math.max(160, startContentH + dy);
+    const newPromptH = Math.max(72, startPromptH - dy);
+    contentCard.style.flex = 'none';
+    contentCard.style.height = newContentH + 'px';
+    promptArea.style.flex = 'none';
+    promptArea.style.height = newPromptH + 'px';
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => { isResizing = false; });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+document.getElementById('openWizardBtn').addEventListener('click', openWizard);
+document.getElementById('closeWizardBtn').addEventListener('click', closeWizard);
+document.getElementById('btnNext').addEventListener('click', goNext);
+document.getElementById('btnBefore').addEventListener('click', goBefore);
+document.getElementById('canvasToggleBtn').addEventListener('click', toggleCanvas);
+
+initResizer();
+initPanelResizer();
+
+// Auto-resize textareas
+document.querySelectorAll('textarea').forEach(ta => {
+  ta.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+  });
+});
+</script>
+</body>
+</html>
