@@ -1,641 +1,2648 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>도판함 — 개념 카드</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>과제 선반</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-:root{
-  /* 암실: 배경은 물러나고 카드가 빛난다 */
-  --room:       oklch(19% 0.024 285);
-  --room-2:     oklch(24.5% 0.028 285);
-  --room-line:  oklch(32% 0.028 285);
-  --room-ink:   oklch(89% 0.012 285);
-  --room-dim:   oklch(60% 0.018 285);
-
-  --card:       oklch(96.5% 0.008 88);
-  --card-edge:  oklch(87% 0.012 88);
-  --ink:        oklch(24% 0.020 285);
-  --ink-soft:   oklch(47% 0.018 285);
-
-  --safe:       oklch(77% 0.145 62);   /* 안전등 */
-  --safe-deep:  oklch(62% 0.145 55);
-  --stuck:      oklch(66% 0.170 25);
-
-  --intent:     oklch(52% 0.130 250);
-  --context:    oklch(58% 0.105 168);
-
-  --mono: ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
-  --sans: "Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
-  --serif:"Noto Serif KR","Apple Myungjo",serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  background:var(--room);color:var(--room-ink);
-  font-family:var(--sans);font-size:16px;line-height:1.55;
-  word-break:keep-all;-webkit-font-smoothing:antialiased;
-  min-height:100vh;
-}
-:focus-visible{outline:2px solid var(--safe);outline-offset:3px;border-radius:3px}
-button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
-
-/* ---------- 상단 ---------- */
-.top{
-  display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
-  padding:.85rem clamp(1rem,4vw,2.5rem);
-  border-bottom:1px solid var(--room-line);
-  position:sticky;top:0;z-index:20;
-  background:color-mix(in oklch,var(--room) 92%,transparent);
-  backdrop-filter:blur(10px);
-}
-.mark{font-family:var(--mono);font-size:.72rem;letter-spacing:.24em;color:var(--safe);margin-right:auto}
-.mini{
-  font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;
-  padding:.4em .75em;border:1px solid var(--room-line);border-radius:2px;color:var(--room-dim);
-}
-.mini:hover{border-color:var(--safe);color:var(--safe)}
-
-/* ---------- 히어로 = 이 페이지의 할 일 ---------- */
-.hero{
-  padding:clamp(2.4rem,7vw,4.2rem) clamp(1rem,4vw,2.5rem) clamp(1.6rem,4vw,2.4rem);
-  border-bottom:1px solid var(--room-line);
-}
-.hero-in{max-width:64rem;margin:0 auto;display:flex;align-items:flex-end;gap:2rem;flex-wrap:wrap}
-.draw{
-  display:flex;align-items:baseline;gap:1rem;
-  font-family:var(--serif);font-weight:600;
-  font-size:clamp(2rem,6.5vw,3.1rem);line-height:1.15;
-  color:var(--room-ink);letter-spacing:-.01em;
-  border-bottom:2px solid var(--safe);padding-bottom:.35rem;
-  transition:color .18s;
-}
-.draw:hover{color:var(--safe)}
-.draw .arw{font-family:var(--mono);font-size:.42em;color:var(--safe);letter-spacing:0}
-.tally{font-family:var(--mono);font-size:.74rem;line-height:1.9;color:var(--room-dim);padding-bottom:.5rem}
-.tally b{color:var(--room-ink);font-weight:500}
-.tally .st{color:var(--stuck)}
-
-/* ---------- 과목 필터 ---------- */
-.subs{
-  display:flex;gap:.4rem;flex-wrap:wrap;
-  max-width:64rem;margin:0 auto;
-  padding:1.1rem clamp(1rem,4vw,2.5rem) 0;
-}
-.sub{
-  font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;
-  padding:.4em .8em;border:1px solid var(--room-line);border-radius:999px;color:var(--room-dim);
-}
-.sub:hover{border-color:var(--room-dim);color:var(--room-ink)}
-.sub[aria-pressed="true"]{background:var(--safe);border-color:var(--safe);color:oklch(20% 0.03 62);font-weight:600}
-
-/* ---------- 도판 그리드 ---------- */
-.sheet{
-  max-width:64rem;margin:0 auto;
-  padding:1.3rem clamp(1rem,4vw,2.5rem) 6rem;
-  display:grid;gap:1.05rem;
-  grid-template-columns:repeat(auto-fill,minmax(15.5rem,1fr));
-}
-.plate{
-  position:relative;text-align:left;
-  background:var(--card);color:var(--ink);
-  border-radius:3px;
-  min-height:14.5rem;padding:1.05rem 1.1rem 2.4rem;
-  display:flex;flex-direction:column;
-  /* 종이 여러 장을 쌓은 두께 */
-  box-shadow:0 0 0 1px var(--card-edge),
-             2px 3px 0 -1px var(--card-edge),
-             4px 6px 0 -2px var(--card-edge),
-             0 10px 24px oklch(10% 0.02 285 / .45);
-  transition:transform .16s ease, box-shadow .16s ease;
-}
-.plate:hover{
-  transform:translate(-2px,-3px);
-  box-shadow:0 0 0 1px var(--card-edge),
-             3px 5px 0 -1px var(--card-edge),
-             6px 9px 0 -2px var(--card-edge),
-             0 16px 32px oklch(10% 0.02 285 / .5);
-}
-.plate .no{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;color:var(--safe-deep)}
-.plate .ttl{
-  font-family:var(--serif);font-weight:600;font-size:1.12rem;line-height:1.4;
-  margin:.5rem 0 .8rem;
-}
-.plate .q{font-size:.92rem;line-height:1.6;color:var(--ink-soft);flex:1}
-.plate .flipnote{
-  position:absolute;left:1.1rem;bottom:1rem;
-  font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;color:oklch(63% 0.015 285);
-}
-.plate .notch{
-  position:absolute;top:0;right:0;width:0;height:0;
-  border-top:1.5rem solid var(--stuck);border-left:1.5rem solid transparent;
-  border-top-right-radius:3px;
-}
-.add{
-  border:1px dashed var(--room-line);border-radius:3px;min-height:14.5rem;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;
-  color:var(--room-dim);font-family:var(--mono);font-size:.74rem;letter-spacing:.12em;
-}
-.add:hover{border-color:var(--safe);color:var(--safe)}
-.add .plus{font-size:1.6rem;line-height:1}
-.empty{
-  grid-column:1/-1;padding:3rem 0;text-align:center;
-  color:var(--room-dim);font-size:.9rem;
-}
-
-/* ---------- 오버레이 ---------- */
-.veil{
-  position:fixed;inset:0;z-index:40;display:none;
-  background:oklch(12% 0.02 285 / .82);backdrop-filter:blur(3px);
-  padding:clamp(.8rem,4vw,2.5rem);overflow-y:auto;
-}
-.veil.on{display:flex;align-items:flex-start;justify-content:center}
-.big{
-  background:var(--card);color:var(--ink);border-radius:4px;
-  width:min(41rem,100%);margin:auto;position:relative;
-  box-shadow:0 0 0 1px var(--card-edge),0 24px 60px oklch(8% 0.02 285 / .6);
-}
-.big .x{
-  position:absolute;top:.5rem;right:.7rem;font-family:var(--mono);
-  font-size:1.1rem;color:var(--ink-soft);padding:.3rem .5rem;line-height:1;
-}
-.big .x:hover{color:var(--stuck)}
-.face{padding:clamp(1.5rem,4vw,2.4rem)}
-
-.face .no{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;color:var(--safe-deep)}
-.face .ttl{font-family:var(--serif);font-weight:600;font-size:1.5rem;line-height:1.35;margin:.6rem 0 1.2rem}
-.face .q{font-size:1.02rem;line-height:1.75}
-.recall-hint{
-  margin:1.6rem 0 1.4rem;padding:.85rem 1rem;
-  background:oklch(93% 0.02 88);border-left:2px solid var(--safe);
-  font-size:.86rem;line-height:1.6;color:var(--ink-soft);
-}
-.big .act{
-  display:flex;gap:.5rem;flex-wrap:wrap;
-  padding:0 clamp(1.5rem,4vw,2.4rem) clamp(1.5rem,4vw,2.4rem);
-}
-.act button{
-  font-family:var(--mono);font-size:.76rem;letter-spacing:.08em;
-  padding:.7em 1.1em;border-radius:2px;border:1px solid var(--card-edge);color:var(--ink-soft);
-}
-.act button:hover{border-color:var(--ink);color:var(--ink)}
-.act .primary{background:var(--ink);border-color:var(--ink);color:var(--card)}
-.act .primary:hover{background:var(--intent);border-color:var(--intent);color:var(--card)}
-.act .got{border-color:var(--context);color:var(--context)}
-.act .got:hover{background:var(--context);color:var(--card)}
-.act .miss{border-color:var(--stuck);color:var(--stuck)}
-.act .miss:hover{background:var(--stuck);color:var(--card)}
-.act .sp{flex:1}
-
-.plateimg{margin:0 0 1.4rem}
-.plateimg svg{display:block;width:100%;height:auto}
-.plateimg figcaption{
-  font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;
-  color:oklch(58% 0.015 285);margin-top:.5rem;text-align:center;
-}
-.body{font-size:.98rem;line-height:1.8;white-space:pre-wrap}
-.body+.body{margin-top:.9rem}
-.memo{
-  margin-top:1.5rem;padding-top:1.1rem;border-top:1px solid var(--card-edge);
-  font-size:.85rem;line-height:1.7;color:var(--ink-soft);white-space:pre-wrap;
-}
-.memo .lb{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;color:var(--safe-deep);display:block;margin-bottom:.4rem}
-.stat{
-  font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;color:oklch(62% 0.015 285);
-  padding:0 clamp(1.5rem,4vw,2.4rem) 1rem;
-}
-
-/* ---------- 폼 ---------- */
-.form{padding:clamp(1.5rem,4vw,2.4rem)}
-.form h2{font-family:var(--serif);font-size:1.3rem;font-weight:600;margin-bottom:1.3rem}
-.fld{margin-bottom:1rem}
-.fld label{
-  display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;
-  color:var(--safe-deep);margin-bottom:.35rem;
-}
-.fld .hint{font-family:var(--sans);font-size:.76rem;letter-spacing:0;color:oklch(60% 0.015 285);text-transform:none}
-.fld input,.fld textarea,.fld select{
-  width:100%;font:inherit;font-size:.94rem;line-height:1.65;
-  padding:.6em .7em;border:1px solid var(--card-edge);border-radius:2px;
-  background:oklch(99% 0.004 88);color:var(--ink);
-}
-.fld textarea{resize:vertical;min-height:5.5rem}
-.fld input:focus,.fld textarea:focus{border-color:var(--intent);outline:none;box-shadow:0 0 0 2px oklch(52% 0.13 250 /.15)}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
-
-.toast{
-  position:fixed;left:50%;bottom:1.6rem;transform:translateX(-50%) translateY(1.5rem);
-  background:var(--room-2);border:1px solid var(--room-line);color:var(--room-ink);
-  font-family:var(--mono);font-size:.74rem;letter-spacing:.06em;
-  padding:.7em 1.1em;border-radius:2px;opacity:0;pointer-events:none;
-  transition:opacity .2s,transform .2s;z-index:60;
-}
-.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-
-.foot{
-  max-width:64rem;margin:0 auto;padding:0 clamp(1rem,4vw,2.5rem) 3rem;
-  font-size:.78rem;line-height:1.7;color:var(--room-dim);
-}
-.foot code{font-family:var(--mono);font-size:.92em;color:var(--safe)}
-
-@media (max-width:560px){
-  .plateimg{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .plateimg svg{min-width:29rem}
-  .draw{font-size:2rem}
-  .row2{grid-template-columns:1fr}
-  .hero-in{gap:1.1rem}
-}
-@media (prefers-reduced-motion:reduce){
-  *{transition:none!important}
-  .plate:hover{transform:none}
-}
+  :root{color-scheme:light}
+  body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}
+  img{max-width:100%}
+  [hidden]:not([hidden=until-found]){display:none!important}
 </style>
 </head>
 <body>
+<style>
+  :root{
+    --ink:#0B0C0E;
+    --paper:#EDEBE4;
+    --paper-2:#E3E0D6;
+    --paper-ink:#16181B;
+    --paper-dim:#6B6A61;
+    --paper-line:#C9C5B7;
+    --hell:#FF5A18;
+    --heaven:#F6E9C9;
+    --glass:rgba(10,11,13,.62);
+    --glass-line:rgba(255,255,255,.14);
+    --hud-text:#F2EFE8;
+    --hud-dim:rgba(242,239,232,.62);
+  }
+  :root{
+    --wall-1:#F5F4F2;
+    --wall-2:#E7E6E3;
+    --wall-3:#D6D5D1;
+    --plank-top:#FDFDFC;
+    --plank-mid:#F1F0ED;
+    --plank-low:#DAD8D3;
+    --slot-1:#EEEDEA;
+    --slot-2:#E1E0DC;
+  }
+  *{box-sizing:border-box;}
+  body{
+    color:var(--hud-text);
+    font-family:"IBM Plex Sans KR",system-ui,-apple-system,sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    background:var(--wall-2);
+  }
 
-<div class="top">
-  <span class="mark">도판함 · PLATE BOX</span>
-  <button class="mini" id="bAdd">+ 카드</button>
-  <button class="mini" id="bOut">내보내기</button>
-  <button class="mini" id="bIn">불러오기</button>
-  <input type="file" id="fIn" accept="application/json" hidden>
-</div>
+  /* ---------- 뷰 전환 ---------- */
+  #viewHome, #viewRide, #viewIntro{display:none;}
+  body.on-home{background:var(--wall-2);}
+  body.on-ride{background:#0B0C0E;}
+  body.on-home #viewHome{display:block;}
+  body.on-ride #viewRide{display:block;}
 
-<section class="hero">
-  <div class="hero-in">
-    <button class="draw" id="bDraw">떠올리기 <span class="arw">▸ 무작위 한 장</span></button>
-    <div class="tally" id="tally"></div>
+  /* ---------- 홈: 선반 ---------- */
+  .wall{
+    min-height:100vh;
+    background:radial-gradient(125% 85% at 50% 34%, var(--wall-1) 0%, var(--wall-2) 52%, var(--wall-3) 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:clamp(56px,9vh,120px) clamp(16px,4vw,72px) clamp(72px,11vh,150px);
+  }
+  .rack{
+    width:100%;
+    max-width:1240px;
+    display:flex;
+    flex-direction:column;
+    gap:clamp(52px,7vh,94px);
+  }
+  .row{
+    position:relative;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+  }
+  .row::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:15px;
+    border-radius:2px;
+    background:linear-gradient(180deg,var(--plank-top) 0%,var(--plank-mid) 48%,var(--plank-low) 100%);
+    box-shadow:0 16px 30px rgba(66,63,58,.20), inset 0 1px 0 rgba(255,255,255,.95);
+    z-index:3;
+  }
+  .slot{
+    position:relative;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    padding:0 clamp(8px,1.2vw,18px) 15px;
+    min-height:clamp(180px,20vw,268px);
+    text-decoration:none;
+    color:inherit;
+  }
+  .glow{
+    position:absolute;
+    left:50%; bottom:6px;
+    transform:translateX(-50%);
+    width:88%; height:88%;
+    background:radial-gradient(58% 58% at 50% 72%, rgba(255,255,255,.98) 0%, rgba(255,255,255,0) 72%);
+    filter:blur(12px);
+    z-index:0;
+    opacity:.9;
+    transition:opacity .45s ease, height .45s cubic-bezier(.22,1,.36,1);
+    pointer-events:none;
+  }
+  .cover{
+    position:relative;
+    z-index:2;
+    width:100%;
+    max-width:236px;
+    aspect-ratio:1 / 1;
+    margin-bottom:-7px;
+    border-radius:2px;
+    overflow:hidden;
+    box-shadow:0 9px 16px rgba(52,49,45,.26);
+    transition:transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s ease;
+    will-change:transform;
+  }
+  .cover svg{display:block;width:100%;height:100%;}
+  .slot:hover .cover,
+  .slot:focus-visible .cover{
+    transform:translateY(-18px);
+    box-shadow:0 30px 44px rgba(52,49,45,.30);
+  }
+  .slot:hover .glow,
+  .slot:focus-visible .glow{opacity:1;height:96%;}
+  .slot:focus-visible{outline:none;}
+  .slot:focus-visible .cover{outline:2px solid #C6421A;outline-offset:3px;}
+  .slot.filled{cursor:pointer;}
+  .slot.empty{cursor:default;}
+  .slot.empty:hover .cover{transform:translateY(-8px);}
+  .cover.blank{
+    background:linear-gradient(158deg,var(--slot-1) 0%,var(--slot-2) 100%);
+    border:1px solid rgba(0,0,0,.055);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    box-shadow:0 7px 13px rgba(52,49,45,.16);
+  }
+  .cover.blank .num{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:clamp(30px,4.4vw,46px);
+    color:rgba(22,24,27,.14);
+    line-height:1;
+  }
+  .cover.blank .wk{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:9.5px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:rgba(22,24,27,.30);
+  }
+
+  /* ---------- 3D 무대 ---------- */
+  #scene{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+    z-index:0;
+    background:#0B0C0E;
+  }
+  #ride{
+    position:relative;
+    height:1400vh;
+    z-index:1;
+    pointer-events:none;
+  }
+
+  /* ---------- 인트로 ---------- */
+  #intro{
+    position:fixed;
+    inset:0;
+    z-index:3;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    text-align:center;
+    padding:24px;
+    pointer-events:none;
+    transition:opacity .45s ease;
+    background:radial-gradient(120% 90% at 50% 55%, rgba(11,12,14,0) 30%, rgba(11,12,14,.72) 100%);
+  }
+  #intro .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--hud-dim);
+    margin:0;
+  }
+  #intro h1{
+    font-family:"Noto Serif KR",Georgia,serif;
+    font-weight:900;
+    font-size:clamp(34px,7.5vw,76px);
+    line-height:1.08;
+    letter-spacing:-.02em;
+    margin:0;
+    text-wrap:balance;
+    text-shadow:0 4px 40px rgba(0,0,0,.75);
+  }
+  #intro .sub{
+    max-width:34ch;
+    font-size:14.5px;
+    color:var(--hud-dim);
+    margin:0;
+  }
+  #intro .scrollcue{
+    margin-top:12px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    letter-spacing:.18em;
+    color:var(--hud-dim);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+  #intro .bar{
+    width:1px;
+    height:46px;
+    background:linear-gradient(180deg,rgba(242,239,232,.7),rgba(242,239,232,0));
+    animation:drop 1.9s ease-in-out infinite;
+  }
+  @keyframes drop{
+    0%{transform:scaleY(.25);transform-origin:top;opacity:.3;}
+    50%{transform:scaleY(1);transform-origin:top;opacity:1;}
+    100%{transform:scaleY(.25);transform-origin:top;opacity:.3;}
+  }
+
+  /* ---------- HUD ---------- */
+  #hud{
+    position:fixed;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+    transition:opacity .4s ease;
+  }
+  .panel{
+    position:absolute;
+    background:var(--glass);
+    border:1px solid var(--glass-line);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border-radius:14px;
+  }
+
+  #yearBox{
+    top:20px;
+    left:20px;
+    padding:11px 16px 11px 11px;
+    display:flex;
+    align-items:center;
+    gap:13px;
+  }
+  .backbtn{
+    pointer-events:auto;
+    flex:none;
+    width:31px;height:31px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,255,255,.07);
+    color:var(--hud-text);
+    font-family:"IBM Plex Sans KR",sans-serif;
+    font-size:15px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:background .25s ease, border-color .25s ease;
+  }
+  .backbtn:hover{background:rgba(255,255,255,.17);border-color:rgba(255,255,255,.38);}
+  .backbtn:focus-visible{outline:2px solid #FFC98A;outline-offset:2px;}
+  a.backlink{
+    font-family:"IBM Plex Sans KR",sans-serif;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--paper-ink);
+    background:transparent;
+    border:1px solid var(--paper-line);
+    border-radius:9px;
+    padding:11px 18px;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+  }
+  a.backlink:hover{border-color:var(--paper-ink);}
+  #yearBox .yr{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:30px;
+    font-weight:500;
+    letter-spacing:.01em;
+    font-variant-numeric:tabular-nums;
+    line-height:1;
+  }
+  #yearBox .sc{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:13px;
+    color:var(--hud-dim);
+    font-variant-numeric:tabular-nums;
+  }
+  #yearBox .sc b{
+    color:var(--hud-text);
+    font-weight:500;
+    font-size:17px;
+  }
+
+  #stageCard{
+    top:20px;
+    right:20px;
+    width:min(392px,calc(100vw - 40px));
+    padding:17px 19px 18px;
+  }
+  #stageCard .top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    padding-bottom:11px;
+    margin-bottom:12px;
+    border-bottom:1px solid rgba(255,255,255,.12);
+  }
+  #stageCard .name{
+    font-family:"Noto Serif KR",Georgia,serif;
+    font-weight:700;
+    font-size:20px;
+    line-height:1.25;
+  }
+  #stageCard .period{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    color:var(--hud-dim);
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  #stageCard .note{
+    font-size:13.5px;
+    line-height:1.72;
+    color:rgba(242,239,232,.88);
+    margin:0;
+    word-break:keep-all;
+  }
+  #stageCard .mrow{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:15px;
+    margin-bottom:6px;
+  }
+  #stageCard .mlab{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10px;
+    letter-spacing:.13em;
+    text-transform:uppercase;
+    color:var(--hud-dim);
+  }
+  #stageCard .mval{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:15px;
+    font-variant-numeric:tabular-nums;
+  }
+  #stageCard .mval span{font-size:11px;color:var(--hud-dim);}
+  #stageCard{
+    transition:border-color .35s ease, box-shadow .35s ease, transform .35s cubic-bezier(.22,1,.36,1);
+  }
+  #stageCard.at-stop{
+    border-color:rgba(255,255,255,.34);
+    box-shadow:0 10px 40px rgba(0,0,0,.34);
+    transform:translateY(-2px);
+  }
+  #stageCard .stopflag{
+    display:none;
+    align-items:center;
+    gap:7px;
+    margin-top:12px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10px;
+    letter-spacing:.13em;
+    text-transform:uppercase;
+    color:var(--hud-dim);
+  }
+  #stageCard.at-stop .stopflag{display:flex;}
+  #stageCard .stopflag i{
+    width:5px;height:5px;border-radius:50%;
+    background:#FFC98A;
+    box-shadow:0 0 0 0 rgba(255,201,138,.6);
+    animation:pulse 2s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(255,201,138,.55);}
+    70%{box-shadow:0 0 0 8px rgba(255,201,138,0);}
+    100%{box-shadow:0 0 0 0 rgba(255,201,138,0);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    #stageCard .stopflag i{animation:none;}
+  }
+  #stageCard .meter{
+    height:3px;
+    border-radius:2px;
+    background:rgba(255,255,255,.14);
+    overflow:hidden;
+  }
+  #stageCard .meter i{
+    display:block;
+    height:100%;
+    border-radius:2px;
+    background:linear-gradient(90deg,var(--hell),#F2C14E,#FFFDF6);
+    transition:width .5s cubic-bezier(.22,1,.36,1);
+  }
+
+  #miniWrap{
+    left:20px;
+    bottom:20px;
+    padding:12px 14px 8px;
+    width:min(430px,calc(100vw - 40px));
+  }
+  #miniWrap .cap{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--hud-dim);
+    margin-bottom:6px;
+  }
+  #miniWrap svg{width:100%;height:auto;display:block;}
+
+  .axis-line{stroke:rgba(242,239,232,.34);stroke-width:1;}
+  .grid-line{stroke:rgba(242,239,232,.11);stroke-width:1;}
+  .tick-txt{font-family:"IBM Plex Mono",monospace;font-size:8.5px;fill:rgba(242,239,232,.55);}
+  .axis-name{font-family:"IBM Plex Sans KR",sans-serif;font-size:9px;fill:rgba(242,239,232,.6);}
+  .curve{fill:none;stroke:#F2EFE8;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round;}
+  .dotpt{fill:rgba(242,239,232,.55);}
+  .nowdot{fill:#FFD9A8;stroke:#FF7A2E;stroke-width:2;}
+  .nowline{stroke:rgba(255,150,60,.55);stroke-width:1;stroke-dasharray:2 3;}
+
+  /* ---------- 종착: 종이 위의 그래프 ---------- */
+  #final{
+    position:relative;
+    z-index:4;
+    background:var(--paper);
+    color:var(--paper-ink);
+    padding:clamp(48px,8vw,110px) 24px clamp(60px,9vw,120px);
+  }
+  #final .inner{
+    max-width:1020px;
+    margin:0 auto;
+    display:flex;
+    flex-direction:column;
+    gap:34px;
+  }
+  #final .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    margin:0 0 10px;
+  }
+  #final h2{
+    font-family:"Noto Serif KR",Georgia,serif;
+    font-weight:900;
+    font-size:clamp(26px,4.4vw,44px);
+    line-height:1.16;
+    letter-spacing:-.02em;
+    margin:0 0 12px;
+    text-wrap:balance;
+  }
+  #final .lede{
+    max-width:62ch;
+    color:var(--paper-dim);
+    font-size:15px;
+    margin:0;
+  }
+  .chart-card{
+    background:#F7F6F1;
+    border:1px solid var(--paper-line);
+    border-radius:16px;
+    padding:clamp(16px,3vw,28px);
+    overflow-x:auto;
+  }
+  .chart-card svg{display:block;width:100%;min-width:640px;height:auto;}
+  .p-axis{stroke:#3A3A33;stroke-width:1.2;}
+  .p-grid{stroke:#D6D2C4;stroke-width:1;}
+  .p-tick{font-family:"IBM Plex Mono",monospace;font-size:10px;fill:#6B6A61;}
+  .p-axname{font-family:"IBM Plex Sans KR",sans-serif;font-size:11px;fill:#4A4A43;}
+  .p-curve{fill:none;stroke:#16181B;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round;}
+  .p-dot{fill:#16181B;}
+  .p-dot-hi{fill:#C6421A;}
+  .p-lab{font-family:"IBM Plex Sans KR",sans-serif;font-size:10px;fill:#4A4A43;}
+  .p-score{font-family:"IBM Plex Mono",monospace;font-size:10px;fill:#16181B;font-weight:500;}
+  .p-mid{stroke:#B9B4A3;stroke-width:1;stroke-dasharray:4 4;}
+
+  table.log{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13.5px;
+  }
+  table.log th{
+    text-align:left;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    font-weight:400;
+    padding:0 12px 8px 0;
+    border-bottom:1px solid var(--paper-line);
+  }
+  table.log td{
+    padding:10px 12px 10px 0;
+    border-bottom:1px solid var(--paper-line);
+    vertical-align:top;
+  }
+  table.log td.yr{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    color:var(--paper-dim);
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  table.log td.nm{font-weight:500;white-space:nowrap;}
+  table.log td.sc{
+    font-family:"IBM Plex Mono",monospace;
+    font-variant-numeric:tabular-nums;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .tbl-wrap{overflow-x:auto;}
+
+  .foot{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding-top:6px;
+  }
+  .foot .meta{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    color:var(--paper-dim);
+  }
+  button.save{
+    font-family:"IBM Plex Sans KR",sans-serif;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--paper);
+    background:var(--paper-ink);
+    border:1px solid var(--paper-ink);
+    border-radius:9px;
+    padding:11px 18px;
+    cursor:pointer;
+  }
+  button.save:hover{background:#000;}
+  button.save:focus-visible{outline:2px solid #C6421A;outline-offset:2px;}
+  #saveMsg{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--paper-dim);}
+
+  #glFail{
+    display:none;
+    position:relative;
+    z-index:5;
+    background:var(--paper);
+    color:var(--paper-ink);
+    padding:28px 24px;
+    font-size:14px;
+    text-align:center;
+  }
+
+  @media (max-width:1080px){
+    .row{grid-template-columns:repeat(3,1fr);}
+  }
+  @media (max-width:640px){
+    .rack{gap:40px;}
+    .row{grid-template-columns:repeat(2,1fr);}
+    .row::after{height:12px;}
+    .slot{min-height:148px;padding-bottom:12px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .cover, .glow{transition:none;}
+  }
+
+  @media (max-width:720px){
+    #stageCard{top:auto;bottom:calc(16px + 40vw);right:12px;left:12px;width:auto;padding:13px 15px 14px;}
+    #stageCard .name{font-size:17px;}
+    #stageCard .top{padding-bottom:9px;margin-bottom:10px;}
+    #stageCard .note{font-size:12.5px;line-height:1.66;max-height:30vh;overflow:hidden;}
+    #stageCard .mrow{margin-top:11px;}
+    #miniWrap{left:12px;right:12px;bottom:12px;width:auto;}
+    #yearBox{top:12px;left:12px;padding:9px 13px 10px;}
+    #yearBox .yr{font-size:24px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    #intro .bar{animation:none;}
+  }
+  /* ========== 2주차 · 자기소개 (모자이크 메뉴) ========== */
+  body.on-intro{background:#F6F5F1;}
+  body.on-intro #viewIntro{display:block;}
+
+  #viewIntro{
+    --w2-bg:#F6F5F1;
+    --w2-card:#FFFDF8;
+    --w2-ink:#16181B;
+    --w2-body:#35342D;
+    --w2-dim:#6E6C62;
+    --w2-line:#E0DCCF;
+    --w2-soft:#EDEAE0;
+    --w2-accent:#C6421A;
+    --w2-rail:56px;
+    background:var(--w2-bg);
+    color:var(--w2-ink);
+    min-height:100vh;
+  }
+
+  /* ---------- 레일 ---------- */
+  .w2-rail{
+    position:fixed;
+    left:0; top:0;
+    z-index:70;
+    width:var(--w2-rail);
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+    padding:22px 0;
+    background:var(--w2-bg);
+    border-right:1px solid var(--w2-line);
+    transition:opacity .22s ease .24s;
+  }
+  body.w2-open .w2-rail{opacity:0;pointer-events:none;transition:opacity .18s ease;}
+  body.w2-index .w2-rail{display:none;}
+  .w2-rail .rlab{
+    writing-mode:vertical-rl;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    letter-spacing:.18em;
+    color:var(--w2-dim);
+    max-height:34vh;
+    overflow:hidden;
+  }
+  .w2-rail .rfoot{
+    writing-mode:vertical-rl;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10px;
+    letter-spacing:.16em;
+    color:#A5A296;
+  }
+  .w2-burger{
+    flex:none;
+    width:44px; height:44px;
+    border:0; padding:0;
+    cursor:pointer;
+    background:var(--tile,#16181B);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+  }
+  .w2-burger i{
+    display:block;
+    width:20px; height:2px;
+    background:#FFFDF8;
+    transition:transform .3s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+  }
+  .w2-burger:focus-visible{outline:2px solid var(--w2-accent);outline-offset:3px;}
+  body.w2-open .w2-burger i:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  body.w2-open .w2-burger i:nth-child(2){opacity:0;}
+  body.w2-open .w2-burger i:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  /* ---------- 모자이크 ---------- */
+  .w2-mosaic{
+    position:fixed;
+    inset:0;
+    z-index:60;
+    display:grid;
+    gap:8px;
+    padding:8px;
+    grid-template-columns:repeat(12,1fr);
+    grid-template-rows:repeat(10,1fr);
+    pointer-events:none;
+    visibility:hidden;
+    transition:visibility 0s .62s;
+  }
+  body.w2-open .w2-mosaic,
+  body.w2-index .w2-mosaic{pointer-events:auto;visibility:visible;transition-delay:0s;}
+
+  .w2-tile{
+    position:relative;
+    display:block;
+    overflow:hidden;
+    text-decoration:none;
+    background:var(--bg);
+    color:var(--ink);
+    transform:translate(var(--tx,0),var(--ty,0));
+    transition:transform .52s cubic-bezier(.22,1,.36,1), background-color .26s ease, color .26s ease;
+    transition-delay:var(--out-d,0ms), 0s, 0s;
+  }
+  body.w2-open .w2-tile,
+  body.w2-index .w2-tile{transform:none;transition-delay:var(--in-d,0ms), 0s, 0s;}
+  .w2-tile .tname{
+    position:absolute;
+    left:clamp(12px,1.4vw,20px);
+    top:clamp(10px,1.2vw,16px);
+    font-family:"Noto Serif KR",Georgia,serif;
+    font-weight:700;
+    font-size:clamp(15px,1.7vw,24px);
+    letter-spacing:-.02em;
+    word-break:keep-all;
+  }
+  .w2-tile .tnum{
+    position:absolute;
+    left:clamp(12px,1.4vw,20px);
+    bottom:clamp(10px,1.2vw,16px);
+    font-family:"IBM Plex Mono",monospace;
+    font-size:10px;
+    letter-spacing:.2em;
+    opacity:.72;
+  }
+  .w2-tile svg{
+    position:absolute;
+    right:clamp(10px,1.2vw,18px);
+    bottom:clamp(10px,1.2vw,18px);
+    width:42%;
+    height:auto;
+    max-height:54%;
+  }
+  .w2-tile:hover,.w2-tile:focus-visible{background:#141413;color:#F2EFE8;outline:none;}
+  .w2-tile svg [data-solid]{
+    fill:currentColor;
+    stroke:none;
+    transition:fill .26s ease, stroke-width .26s ease;
+  }
+  .w2-tile:hover svg [data-solid],
+  .w2-tile:focus-visible svg [data-solid]{fill:none;stroke:currentColor;stroke-width:3.5;}
+  .w2-tile svg [data-line]{
+    fill:none;
+    stroke:currentColor;
+    stroke-width:4;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+
+  .w2-cell{
+    background:#141413;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transform:translate(var(--tx,0),var(--ty,115%));
+    transition:transform .52s cubic-bezier(.22,1,.36,1);
+    transition-delay:var(--out-d,45ms);
+  }
+  body.w2-open .w2-cell,
+  body.w2-index .w2-cell{transform:none;transition-delay:var(--in-d,45ms);}
+  .w2-x,.w2-home{
+    display:none;
+    width:100%; height:100%;
+    border:0; padding:0;
+    background:transparent;
+    cursor:pointer;
+    align-items:center;
+    justify-content:center;
+    color:#F2EFE8;
+    text-decoration:none;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    letter-spacing:.16em;
+  }
+  body.w2-open .w2-x{display:flex;}
+  body.w2-index .w2-home{display:flex;}
+  .w2-x:focus-visible,.w2-home:focus-visible{outline:2px solid #F2EFE8;outline-offset:-5px;}
+
+  @media (min-width:641px){
+    .w2-t1{grid-column:1/4;  grid-row:1/7;  --tx:-115%;--in-d:0ms;  --out-d:90ms;}
+    .w2-t2{grid-column:4/9;  grid-row:1/5;  --ty:-120%;--in-d:45ms; --out-d:45ms;}
+    .w2-t3{grid-column:9/13; grid-row:1/7;  --tx:115%; --in-d:90ms; --out-d:0ms;}
+    .w2-t4{grid-column:1/4;  grid-row:7/11; --tx:-115%;--in-d:0ms;  --out-d:90ms;}
+    .w2-t5{grid-column:4/7;  grid-row:5/11; --ty:120%; --in-d:45ms; --out-d:45ms;}
+    .w2-t6{grid-column:7/13; grid-row:7/11; --tx:115%; --in-d:90ms; --out-d:0ms;}
+    .w2-cell{grid-column:7/9;grid-row:5/7;}
+  }
+
+  /* ---------- 진입 히어로 ---------- */
+  .w2-doc{margin-left:var(--w2-rail);}
+  .w2-hero{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    padding:0 clamp(24px,6vw,96px);
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .w2-henum{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    margin:0 0 18px;
+    opacity:.82;
+  }
+  .w2-heq{
+    font-family:"Noto Serif KR",Georgia,serif;
+    font-weight:900;
+    font-size:clamp(32px,6.4vw,84px);
+    line-height:1.14;
+    letter-spacing:-.03em;
+    margin:0;
+    max-width:15ch;
+    word-break:keep-all;
+    text-wrap:balance;
+  }
+
+  /* ---------- 스크롤 글자 채우기 ---------- */
+  .w2-leadwrap{
+    min-height:190vh;
+    padding:20vh clamp(24px,6vw,96px) 0;
+  }
+  .w2-lead2{
+    position:sticky;
+    top:24vh;
+    font-family:"Noto Serif KR",Georgia,serif;
+    font-weight:900;
+    font-size:clamp(23px,4.1vw,50px);
+    line-height:1.46;
+    letter-spacing:-.022em;
+    max-width:17ch;
+    word-break:keep-all;
+    margin:0;
+  }
+  .w2-lead2 span{
+    color:transparent;
+    -webkit-text-stroke:1px #C3BEAE;
+    transition:color .16s ease;
+  }
+  .w2-lead2 span.on{color:var(--w2-ink);-webkit-text-stroke-width:0;}
+
+  /* ---------- 본문 ---------- */
+  .w2-main{padding:0 clamp(22px,5vw,80px);}
+  .w2-page{max-width:748px;margin:0 auto;padding:clamp(40px,7vh,80px) 0 clamp(70px,11vh,130px);}
+
+  /* 블록 사이 리듬 — 각 블록의 margin:0 을 이겨야 하므로 #viewIntro 로 우선순위를 올린다 */
+  #viewIntro .w2-page > * + *{margin-top:clamp(28px,4.2vh,44px);}
+  #viewIntro .w2-page > .w2-h2 + .w2-fig{margin-top:18px;}
+  #viewIntro .w2-page > .w2-note{margin-top:34px;}
+
+  /* 진입 모션 */
+  .w2-page > *{animation:w2in .62s cubic-bezier(.22,1,.36,1) backwards;}
+  .w2-page > *:nth-child(1){animation-delay:.00s}
+  .w2-page > *:nth-child(2){animation-delay:.05s}
+  .w2-page > *:nth-child(3){animation-delay:.10s}
+  .w2-page > *:nth-child(4){animation-delay:.14s}
+  .w2-page > *:nth-child(5){animation-delay:.18s}
+  .w2-page > *:nth-child(6){animation-delay:.21s}
+  .w2-page > *:nth-child(7){animation-delay:.24s}
+  .w2-page > *:nth-child(n+8){animation-delay:.27s}
+  @keyframes w2in{
+    from{opacity:0;transform:translateY(16px);}
+    to{opacity:1;transform:none;}
+  }
+
+  .w2-body{margin:0;}
+  .w2-body p{
+    font-size:15.5px;
+    line-height:1.96;
+    color:var(--w2-body);
+    margin:0 0 17px;
+    word-break:keep-all;
+    max-width:60ch;
+  }
+  .w2-body p:last-child{margin-bottom:0;}
+  .w2-body p.soft{color:var(--w2-dim);font-size:14.5px;}
+  .w2-body em{font-style:normal;color:var(--w2-ink);font-weight:600;}
+
+  .w2-h2{
+    font-family:"Noto Serif KR",Georgia,serif;
+    font-weight:700;
+    font-size:clamp(19px,2.5vw,25px);
+    line-height:1.42;
+    letter-spacing:-.018em;
+    margin:0;
+    word-break:keep-all;
+    max-width:26ch;
+  }
+
+  .w2-quote{
+    border-left:2px solid var(--w2-accent);
+    padding:2px 0 2px 22px;
+    margin:0;
+  }
+  .w2-quote p{
+    font-family:"Noto Serif KR",Georgia,serif;
+    font-weight:700;
+    font-size:clamp(17.5px,2.3vw,23px);
+    line-height:1.62;
+    letter-spacing:-.018em;
+    margin:0 0 10px;
+    word-break:keep-all;
+  }
+  .w2-quote cite{
+    display:block;
+    font-style:normal;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    line-height:1.6;
+    color:var(--w2-dim);
+  }
+
+  .w2-fig{
+    background:var(--w2-card);
+    border:1px solid var(--w2-line);
+    border-radius:15px;
+    padding:clamp(16px,3vw,28px);
+    margin:0;
+  }
+  .w2-fig svg{display:block;width:100%;height:auto;}
+  .w2-fig figcaption{
+    margin-top:15px;
+    padding-top:13px;
+    border-top:1px solid var(--w2-soft);
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    line-height:1.65;
+    color:var(--w2-dim);
+  }
+
+  .w2-rows{border-top:1px solid var(--w2-line);margin:0;}
+  .w2-rows div{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:8px 18px;
+    padding:14px 0;
+    border-bottom:1px solid var(--w2-line);
+  }
+  .w2-rows .a{font-size:14.5px;font-weight:500;word-break:keep-all;}
+  .w2-rows .b{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    color:var(--w2-dim);
+    text-align:right;
+    word-break:keep-all;
+  }
+
+  .w2-note{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    line-height:1.8;
+    color:#A5A296;
+    margin:0;
+  }
+
+  @media (max-width:640px){
+    #viewIntro{--w2-rail:44px;}
+    .w2-burger{width:36px;height:36px;}
+    .w2-rail{padding:14px 0;}
+    .w2-mosaic{
+      grid-template-columns:repeat(2,1fr);
+      grid-template-rows:repeat(3,1fr);
+      padding:8px 8px 78px;
+    }
+    .w2-tile{--ty:118%;--in-d:0ms;--out-d:0ms;}
+    .w2-tile:nth-child(2n){--in-d:40ms;--out-d:40ms;}
+    .w2-tile svg{width:38%;}
+    .w2-cell{
+      position:fixed;
+      left:50%; bottom:14px;
+      width:56px; height:56px;
+      border-radius:50%;
+      transform:translateX(-50%) translateY(var(--ty,150%));
+    }
+    body.w2-open .w2-cell,
+    body.w2-index .w2-cell{transform:translateX(-50%);}
+    .w2-hero{padding:0 18px;}
+    .w2-leadwrap{min-height:170vh;padding:15vh 18px 0;}
+    .w2-lead2{top:20vh;}
+    .w2-main{padding:0 18px;}
+    .w2-page{padding:34px 0 72px;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .w2-page > *{animation:none;}
+    .w2-tile,.w2-cell,.w2-burger i,.w2-lead2 span{transition:none;}
+  }
+
+</style>
+
+<div id="viewHome">
+  <div class="wall">
+    <div class="rack" id="rack"></div>
   </div>
-</section>
-
-<div class="subs" id="subs"></div>
-<div class="sheet" id="sheet"></div>
-
-<div class="foot">
-  앞면에는 질문만 있습니다. 답을 소리 내어 떠올린 다음 뒤집으세요. 막힌 카드는 모서리에 표시가 남고 <b>떠올리기</b>에서 먼저 나옵니다.<br>
-  기록은 이 브라우저에 저장됩니다. 파일을 <b>다운로드해서 열어야</b> 저장이 유지되고, <code>내보내기</code>로 백업해 두면 기기를 옮겨도 이어집니다.
 </div>
 
-<!-- 카드 보기 -->
-<div class="veil" id="vCard">
-  <div class="big">
-    <button class="x" data-close>✕</button>
-    <div class="face" id="cFace"></div>
-    <div class="act" id="cAct"></div>
-    <div class="stat" id="cStat"></div>
+<div id="viewRide">
+<canvas id="scene"></canvas>
+
+<div id="hud">
+  <div class="panel" id="yearBox">
+    <button class="backbtn" id="backBtn" type="button" aria-label="선반으로 돌아가기">←</button>
+    <span class="yr" id="yrTxt">1998</span>
+    <span class="sc">만족도 <b id="scTxt">5.0</b> / 10</span>
+  </div>
+
+  <div class="panel" id="stageCard">
+    <div class="top">
+      <span class="name" id="stName">유아기</span>
+      <span class="period" id="stPeriod">1998~2004</span>
+    </div>
+    <p class="note" id="stNote">익산 성모병원에서 12시에 태어났다. 우량아였다고 한다 — 4kg대.</p>
+    <div class="mrow">
+      <span class="mlab">이 시기 만족도</span>
+      <span class="mval"><b id="stScore">5</b><span> / 10</span></span>
+    </div>
+    <div class="meter"><i id="stMeter" style="width:44%"></i></div>
+    <div class="stopflag"><i></i><span>정차 중 — 읽고 계속 스크롤</span></div>
+  </div>
+
+  <div class="panel" id="miniWrap">
+    <div class="cap"><span>만족도 그래프</span><span>1998 → 2026</span></div>
+    <div id="miniGraph"></div>
   </div>
 </div>
 
-<!-- 카드 추가/수정 -->
-<div class="veil" id="vForm">
-  <div class="big">
-    <button class="x" data-close>✕</button>
-    <div class="form">
-      <h2 id="fTitle">카드 추가</h2>
-      <div class="row2">
-        <div class="fld">
-          <label for="iSub">수업</label>
-          <input id="iSub" list="subList" placeholder="VT" autocomplete="off">
-          <datalist id="subList"></datalist>
-        </div>
-        <div class="fld">
-          <label for="iCode">번호</label>
-          <input id="iCode" placeholder="VT-02" autocomplete="off">
-        </div>
-      </div>
-      <div class="fld">
-        <label for="iTtl">개념 이름</label>
-        <input id="iTtl" placeholder="의도와 맥락" autocomplete="off">
-      </div>
-      <div class="fld">
-        <label for="iQ">앞면 · 질문 <span class="hint">— 답이 들어가면 안 됩니다</span></label>
-        <textarea id="iQ" placeholder="이 개념을 다시 꺼내게 만드는 질문"></textarea>
-      </div>
-      <div class="fld">
-        <label for="iA">뒷면 · 내 정리 <span class="hint">— 내 말로 쓴 것만</span></label>
-        <textarea id="iA" rows="7"></textarea>
-      </div>
-      <div class="fld">
-        <label for="iM">어디서 걸렸나 <span class="hint">— 비워도 됩니다</span></label>
-        <textarea id="iM" rows="3" placeholder="이 개념을 만난 자리, 아직 안 풀린 것"></textarea>
-      </div>
-      <div class="act" style="padding:0">
-        <button class="primary" id="bSave">저장</button>
-        <button id="bDel" style="display:none" class="miss">삭제</button>
-        <span class="sp"></span>
-        <button data-close>취소</button>
-      </div>
+<div id="intro">
+  <p class="eyebrow">1998 — 2026 · 16 STOPS</p>
+  <h1>인생 롤러코스터</h1>
+  <p class="sub">레일의 높이가 그해의 만족도입니다. 바닥은 불구덩이, 꼭대기는 구름 위. 시기마다 잠깐 정차하니, 멈춘 동안 오른쪽 기록을 읽고 다시 스크롤하세요.</p>
+  <div class="scrollcue"><span>SCROLL</span><span class="bar"></span></div>
+</div>
+
+<div id="ride"></div>
+
+<div id="glFail">이 브라우저에서 3D를 실행할 수 없어 그래프만 표시합니다.</div>
+
+<section id="final">
+  <div class="inner">
+    <div>
+      <p class="eyebrow">종착역 · 그려진 그래프</p>
+      <h2>탄생부터 지금까지,<br>가로축은 시간 세로축은 만족도</h2>
+      <p class="lede">1998년 출생부터 2026년 현재까지 16개 지점. 만족도는 1점(최악)에서 10점(최고)까지의 원점수 그대로입니다. 가장 깊은 두 골은 중학교 1·2학년과 군대이고, 최고점은 지금입니다.</p>
+    </div>
+
+    <div class="chart-card" id="bigChart"></div>
+
+    <div class="tbl-wrap">
+      <table class="log">
+        <thead>
+          <tr><th>시기</th><th>기간</th><th style="text-align:right;">만족도</th><th>기록</th></tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+
+    <div class="foot">
+      <span class="meta">최저 2점 · 최고 8점 · 평균 <span id="avgTxt">—</span>점</span>
+      <span style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span id="saveMsg"></span>
+        <a class="backlink" href="#/">← 선반으로</a>
+        <button class="save" id="saveBtn" type="button">그래프 이미지로 저장</button>
+      </span>
     </div>
   </div>
+</section>
 </div>
 
-<div class="toast" id="toast"></div>
-
+<div id="viewIntro">
+  <aside class="w2-rail" id="ibRail"></aside>
+  <div class="w2-doc" id="ibMain"></div>
+  <div class="w2-mosaic" id="ibMosaic"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
 (function(){
-var KEY='plateBox_v1';
+  "use strict";
 
-/* ============ 첫 카드 ============ */
-var SEED=[{
-  id:'vt01', sub:'VT', code:'VT-01', title:'의도와 맥락',
-  q:'의도와 맥락은 둘 중 하나를 고르는 문제인가? 둘의 관계를 그림으로 그려 설명해 보라.',
-  a:'의도는 행위 자체가 작가의 선택으로 이루어지고 대상자는 의도를 행위(그래픽, 이미지 등)로 전달받는다. 작가가 의도한 것을 받는 대상자는 맥락 안에서 이해하게 되는데, 맥락은 의도를 주된 근간으로 품고 있기 때문이다.\n\n그렇기에 의도 자체가 기반이 되고 그 위에 맥락이 받쳐 주어야 하는 보완적 존재로 구성된다. 또한 맥락은 치밀한 구성으로 완성되어야지 의도가 전달된다.\n\n청자와 시점과 장소를 지정하는 행위 자체가 작가의 선택이다. 맥락을 설정하는 것은 의도를 내려놓는 일이 아니라 의도를 한 번 더 행사하는 일이다. 그래서 둘은 층위가 다르다. 의도는 무엇을 말할지를 정하고, 맥락은 그것이 어떻게 받아들여지는지에 대한 수단이다.',
-  m: 'VT 사전 과제 ①번 항목(누가·언제·어디서)을 두고 나눈 대화에서 나왔다.\n\n아직 안 푼 것 — 대상자를 "받기만 하는 쪽"으로 두면 내가 앞서 쓴 "서로가 알 수 있는 이미지"와 어긋난다. 다음에 이어서.',
-  svg:'PLATE_VT01',
-  cap:'',
-  st:{seen:0,got:0,miss:0,last:0,stuck:false}
-}];
+  /* =========================================================
+     데이터 — 대화로 수집·검증한 16개 지점 (원점수 1~10)
+     ========================================================= */
+  var STAGES = [
+    { t:1998.0, s:5, name:"유아기", period:"1998~2004",
+      note:"익산 성모병원에서 12시에 태어났다. 우량아였다고 한다 — 4kg대.",
+      full:"익산 성모병원에서 12시에 태어났다. 우량아였다고 한다 — 4kg대." },
 
-/* ============ 도판 ============ */
-var PLATES={};
-PLATES.PLATE_VT01 = [
-'<svg viewBox="0 52 632 338" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="의도·맥락·행위 층위와 맥락 밀도 비교">',
-'<defs>',
-'<pattern id="sparse" width="30" height="10" patternUnits="userSpaceOnUse">',
-'<line x1="0" y1="0" x2="0" y2="10" stroke="oklch(58% 0.105 168)" stroke-width="1.6"/></pattern>',
-'<pattern id="dense" width="7" height="10" patternUnits="userSpaceOnUse">',
-'<line x1="0" y1="0" x2="0" y2="10" stroke="oklch(58% 0.105 168)" stroke-width="1.6"/></pattern>',
-'<marker id="dn" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="7" markerHeight="7">',
-'<path d="M0 0L5 10L10 0z" fill="oklch(62% 0.145 55)"/></marker>',
-'</defs>',
-// 층 이름 (공통 축)
-'<g font-family="ui-monospace,monospace" text-anchor="end" fill="oklch(24% 0.02 285)">',
-'<text x="118" y="176" font-size="14" font-weight="700">행위</text>',
-'<text x="118" y="222" font-size="14" font-weight="700">맥락</text>',
-'<text x="118" y="268" font-size="14" font-weight="700">의도</text>',
-'</g>',
-'<g font-family="sans-serif" text-anchor="end" fill="oklch(47% 0.018 285)" font-size="10.5">',
-'<text x="118" y="191">그래픽 · 이미지</text>',
-'<text x="118" y="237">누가 · 언제 · 어디서</text>',
-'<text x="118" y="283">무엇을 말할지</text>',
-'</g>',
-'<text x="118" y="300" text-anchor="end" font-family="sans-serif" font-size="9.5" fill="oklch(62% 0.145 55)">작가가 놓는 층</text>',
-// ---- A: 성긴 맥락 ----
-'<g>',
-'<rect x="140" y="150" width="220" height="46" fill="oklch(94% 0.012 88)" stroke="oklch(24% 0.02 285)" stroke-width="1.4"/>',
-'<rect x="140" y="196" width="220" height="46" fill="url(#sparse)" stroke="oklch(24% 0.02 285)" stroke-width="1.4"/>',
-'<rect x="140" y="242" width="220" height="46" fill="oklch(52% 0.13 250)" stroke="oklch(24% 0.02 285)" stroke-width="1.4"/>',
-'<text x="250" y="78" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="oklch(47% 0.018 285)">대상자</text>',
-'<circle cx="250" cy="95" r="7" fill="none" stroke="oklch(47% 0.018 285)" stroke-width="1.6"/>',
-'<line x1="250" y1="108" x2="250" y2="205" stroke="oklch(62% 0.145 55)" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#dn)"/>',
-'<g stroke="oklch(66% 0.17 25)" stroke-width="2.8" stroke-linecap="round">',
-'<line x1="241" y1="222" x2="259" y2="240"/><line x1="259" y1="222" x2="241" y2="240"/></g>',
-'<text x="250" y="318" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="oklch(24% 0.02 285)">성긴 맥락</text>',
-'<text x="250" y="338" text-anchor="middle" font-family="sans-serif" font-size="11" fill="oklch(66% 0.17 25)">의도까지 닿지 못한다</text>',
-'</g>',
-// ---- B: 치밀한 맥락 ----
-'<g>',
-'<rect x="402" y="150" width="220" height="46" fill="oklch(94% 0.012 88)" stroke="oklch(24% 0.02 285)" stroke-width="1.4"/>',
-'<rect x="402" y="196" width="220" height="46" fill="url(#dense)" stroke="oklch(24% 0.02 285)" stroke-width="1.4"/>',
-'<rect x="402" y="242" width="220" height="46" fill="oklch(52% 0.13 250)" stroke="oklch(24% 0.02 285)" stroke-width="1.4"/>',
-'<text x="512" y="78" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="oklch(47% 0.018 285)">대상자</text>',
-'<circle cx="512" cy="95" r="7" fill="none" stroke="oklch(47% 0.018 285)" stroke-width="1.6"/>',
-'<line x1="512" y1="108" x2="512" y2="256" stroke="oklch(62% 0.145 55)" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#dn)"/>',
-'<circle cx="512" cy="270" r="9.5" fill="none" stroke="oklch(96.5% 0.008 88)" stroke-width="2.2"/>',
-'<circle cx="512" cy="270" r="3.5" fill="oklch(96.5% 0.008 88)"/>',
-'<text x="512" y="318" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="oklch(24% 0.02 285)">치밀한 맥락</text>',
-'<text x="512" y="338" text-anchor="middle" font-family="sans-serif" font-size="11" fill="oklch(58% 0.105 168)">의도까지 닿는다</text>',
-'</g>',
-'<text x="316" y="374" text-anchor="middle" font-family="sans-serif" font-size="11" fill="oklch(47% 0.018 285)">같은 의도라도, 맥락의 밀도가 도착 여부를 가른다</text>',
-'</svg>'].join('');
+    { t:2007.0, s:3, name:"초등 1~5학년", period:"2005~2009",
+      note:"5학년 때까지 익산에서 살았다. 익산 애들은 진짜 사나웠다. ‘이리’가 원래 늑대를 뜻하는데 동네 이름이 이리라서, 말장난처럼 애들이 사납다는 말을 많이들 했다. 학교에서 애들 싸우는 건 그냥 매일 일상이었다.",
+      full:"5학년 때까지 익산에서 살았다. 익산 애들은 진짜 사나웠다. ‘이리’가 원래 늑대를 뜻하는데 동네 이름이 이리라서, 말장난처럼 애들이 사납다는 말을 많이들 했다. 학교에서 애들 싸우는 건 그냥 매일 일상이었다. (익산은 과거 호남 3대 조폭 도시라는 오명이 있었고, 이리역 일대의 거친 분위기가 학생들 사이 기싸움으로 이어졌다는 기록이 있다.)" },
 
-/* ============ 상태 ============ */
-var cards=[], filter='전체', cur=null, editing=null;
+    { t:2010.0, s:5, name:"초등 6학년", period:"2010",
+      note:"5학년 때 이사 간다는 소리를 듣고 엄청 좋아했다. 그렇게 6학년 때 청주로 이사했다.",
+      full:"5학년 때 이사 간다는 소리를 듣고 엄청 좋아했다. 그렇게 6학년 때 청주로 이사했다." },
 
-function load(){
-  try{
-    var raw=localStorage.getItem(KEY);
-    cards = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(SEED));
-  }catch(e){ cards=JSON.parse(JSON.stringify(SEED)); }
-  if(!Array.isArray(cards)||!cards.length) cards=JSON.parse(JSON.stringify(SEED));
-}
-function save(){
-  try{ localStorage.setItem(KEY,JSON.stringify(cards)); }
-  catch(e){ toast('저장 실패 — 파일을 다운로드해서 열어야 저장됩니다'); }
-}
-function toast(t){
-  var el=document.getElementById('toast');
-  el.textContent=t; el.classList.add('on');
-  clearTimeout(el._t); el._t=setTimeout(function(){el.classList.remove('on');},2400);
-}
-function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){
-  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    { t:2012.0, s:2, name:"중1~중2", period:"2011~2012",
+      note:"청주에서 중학교를 나왔다. 장난을 진짜 많이 쳤고, 하도 말을 안 들으니까 부모님을 모셔온 적도 있다. 중2 때였다.",
+      full:"청주에서 중학교를 나왔다. 장난을 진짜 많이 쳤고, 하도 말을 안 들으니까 부모님을 모셔온 적도 있다. 중2 때였다." },
 
-/* ============ 그리기 ============ */
-function subjects(){
-  var out=[]; cards.forEach(function(c){ if(out.indexOf(c.sub)<0) out.push(c.sub); });
-  return out.sort();
-}
-function shown(){
-  return filter==='전체' ? cards : cards.filter(function(c){return c.sub===filter;});
-}
-function drawSubs(){
-  var box=document.getElementById('subs'), list=['전체'].concat(subjects());
-  box.innerHTML='';
-  list.forEach(function(s){
-    var b=document.createElement('button');
-    b.className='sub'; b.textContent=s;
-    b.setAttribute('aria-pressed', s===filter);
-    b.onclick=function(){ filter=s; drawSubs(); drawSheet(); };
-    box.appendChild(b);
-  });
-  var dl=document.getElementById('subList');
-  dl.innerHTML=''; subjects().forEach(function(s){
-    var o=document.createElement('option'); o.value=s; dl.appendChild(o);
-  });
-}
-function drawTally(){
-  var all=cards.length, st=cards.filter(function(c){return c.st&&c.st.stuck;}).length;
-  var fresh=cards.filter(function(c){return !c.st||!c.st.seen;}).length;
-  document.getElementById('tally').innerHTML=
-    '모은 카드 <b>'+all+'</b>장'
-    +'<br>아직 안 꺼낸 것 <b>'+fresh+'</b>장'
-    +(st?'<br><span class="st">막힌 것 '+st+'장</span>':'');
-}
-function drawSheet(){
-  var box=document.getElementById('sheet'), list=shown();
-  box.innerHTML='';
-  list.forEach(function(c){
-    var b=document.createElement('button');
-    b.className='plate';
-    b.innerHTML=(c.st&&c.st.stuck?'<span class="notch"></span>':'')
-      +'<span class="no">'+esc(c.code||c.sub)+'</span>'
-      +'<span class="ttl">'+esc(c.title)+'</span>'
-      +'<span class="q">'+esc(c.q)+'</span>'
-      +'<span class="flipnote">떠올린 뒤 → 뒤집기</span>';
-    b.onclick=function(){ open(c); };
-    box.appendChild(b);
-  });
-  var add=document.createElement('button');
-  add.className='add';
-  add.innerHTML='<span class="plus">+</span><span>카드 추가</span>';
-  add.onclick=function(){ openForm(null); };
-  box.appendChild(add);
-  if(!list.length){
-    var e=document.createElement('p');
-    e.className='empty'; e.textContent=filter+' 카드는 아직 없습니다.';
-    box.insertBefore(e,add);
+    { t:2013.0, s:4, name:"중3", period:"2013",
+      note:"부모님이 학교에 오신 날이 죄송스러워서 많이 반성했다. 중3부터는 조용하게, 진짜 말 잘 듣는 학생이 됐다.",
+      full:"부모님이 학교에 오신 날이 죄송스러워서 많이 반성했다. 중3부터는 조용하게, 진짜 말 잘 듣는 학생이 됐다. 미술학원은 중2 후반부터 다니고 있었다." },
+
+    { t:2014.0, s:4, name:"고1", period:"2014",
+      note:"형이 다니던, 청주에서 공부 잘하기로 유명한 학교에 들어갔다. 적응을 잘 못했고 성적은 뒤에서 놀았다. 그냥 재밌는 친구로 기억되며 그냥저냥 진도만 따라갔다.",
+      full:"형이 다니던, 청주에서 공부 잘하기로 유명한 학교에 들어갔다. 적응을 잘 못했고 공부도 잘하는 편이 아니어서 성적은 뒤에서 놀았다. 그냥 재밌는 친구로 기억되며 그냥저냥 진도만 따라갔다." },
+
+    { t:2015.0, s:5.5, name:"고2", period:"2015",
+      note:"갑자기 공부가 엄청 하고 싶어진 계기가 있었다. 좋아하던 여자애가 가는 대학을 듣고, 나도 거기로 가야겠다 싶어서 내 딴에는 공부를 엄청 했다.",
+      full:"갑자기 공부가 엄청 하고 싶어진 계기가 있었다. 좋아하던 여자애가 가는 대학을 듣고, 나도 거기로 가야겠다 싶어서 내 딴에는 공부를 엄청 했다." },
+
+    { t:2016.0, s:7, name:"고3", period:"2016",
+      note:"결국 그 대학에 갔는데 그 여자애는 떨어졌다. 정원이 엄청 적은데 내가 밀어내고 나만 붙어버렸다. 운이 좋았다 — 입시 시험에 전날 작업했던 그림 주제가 나왔다.",
+      full:"결국 그 대학에 갔는데 그 여자애는 떨어졌다. 입학 가능한 정원이 엄청 적은데 내가 밀어내고 나만 붙어버렸다. 운이 좋았다 — 입시 시험을 볼 때 전날 작업했던 그림 주제가 나와서 합격했다." },
+
+    { t:2017.0, s:5, name:"대학 1학년", period:"2017",
+      note:"힘들었다. 시각디자인과에 남자가 나랑 형 단둘뿐이었다. 적응도 못 했고 친구도 없어서, 주말엔 플레이스테이션을 들고 과실에 와서 불 끄고 혼자 게임하며 놀았다.",
+      full:"힘들었다. 시각디자인과에 남자가 나랑 형 단둘뿐이었다. 적응도 못 했고 친구도 없어서, 주말엔 플레이스테이션을 들고 과실에 와서 불 끄고 혼자 게임하며 놀았다." },
+
+    { t:2019.0, s:2, name:"군대", period:"2018~2019",
+      note:"2학년이 되기 전에 입대했다. 600일을 복무했고 좀 다쳐서 왔다. 많이 별로였다. 그래도 내가 아플 때 가족만큼이나 도와준 형을 만났다. 음악을 하는 형인데 지금까지도 너무 소중하고 좋은 사람이다.",
+      full:"2학년이 되기 전에 입대했다. 600일을 복무했고 좀 다쳐서 왔다. 많이 별로였다. 그래도 군대에서, 내가 아플 때 정말 가족만큼이나 도와준 형을 만났다. 음악을 하는 형인데 지금까지도 너무 소중하고 좋은 사람이다." },
+
+    { t:2021.0, s:6, name:"대학 2~4학년", period:"2020~2022",
+      note:"전역하고 2학년으로 복학해서 3, 4학년까지 별탈 없이 평범하게 졸업했다. 대학생을 계속하고 싶다는 생각도 했다. 몸은 편했으니까 — 책임질 것도 없었다.",
+      full:"전역하고 2학년으로 복학해서 3, 4학년까지 별탈 없이 평범하게 졸업했다. 대학생을 계속하고 싶다는 생각도 했다. 몸은 편했으니까 — 책임질 것도 없었다." },
+
+    { t:2023.5, s:7, name:"졸업 · 첫 입사", period:"2023",
+      note:"3월 2일 졸업하고 바로 학교 선배 형이랑 서울로 올라왔다. 4개월 만에 UI·GUI 업무를 중점으로 하는 회사에 들어갔다. 일단 가서 배우자, 그다음에 더 큰 회사로 넘어가야겠다는 생각이었다.",
+      full:"2023년 3월 2일 졸업하고 바로 학교 선배 형이랑 서울로 올라왔다. 4개월 만에 UI·GUI 업무를 중점으로 하는 회사에 들어갔다. 바로 회사를 가서 다음엔 더 큰 회사로 넘어가야겠다, 일단 가서 배우자 — 그런 생각으로 입사했다." },
+
+    { t:2024.5, s:6, name:"회사 1·2년차", period:"2023~2025",
+      note:"열심히 하겠다는 생각도 있었고, 잘해보고 싶어서 열심히 했다.",
+      full:"그냥 열심히 하겠다는 생각도 있었고, 잘해보고 싶어서 열심히 했다." },
+
+    { t:2026.0, s:3, name:"회사 3년차", period:"2025~2026",
+      note:"더 이상 분위기가 나랑 맞지 않았다. 성과도 더 내고 싶고 다 같이 정보도 공유하고 싶은데 그런 분위기가 아니었다. 취업시장이 안 좋다는 말, 목적 없이 나가지 말라는 말, 환승이직하라는 말을 너무 많이 들어서 미뤘는데 1월쯤 후회했다. 그런 말 듣지 말걸, 그냥 내 의지대로 할걸. 3월에 퇴사했다.",
+      full:"더 이상 분위기가 나랑 맞지 않았다. 나는 성과도 더 내고 싶고 다 같이 정보도 공유하고 그러고 싶은데 그런 분위기는 아니었다. 취업시장이 안 좋다는 말을 너무 많이 들어서 나가기 그렇기도 했고, 아무 목적 없이 나가지 말라는 말, 환승이직하라는 말도 많이 들어서 ‘그런가?’ 했다. 그런데 3년차가 되니까 좀 후회했다 — 그런 말을 듣지 말걸, 그냥 내 의지대로 할걸. 1월쯤 후회했고 3월에 퇴사했다." },
+
+    { t:2026.4, s:5, name:"파이 프리코스", period:"2026.4~6",
+      note:"3년 딱 찍고 그만두려던 참에 마침 토스에서 하는 파이 학교가 생겼다. 원래는 1년을 통으로 쉬려고 했다 — 1주일 이상 연속으로 쉬어본 적이 없어서. 점수는 5, 미지수였다. 어떻게 무엇을 배울지도 몰랐으니까.",
+      full:"3년 딱 찍고 그만두려던 참에 마침 토스에서 하는 파이 학교가 생겼다. 뭔가 도움이 될 만한 게 없을까, 그냥 1년을 통으로 쉬는 게 맞을까 고민했다. 원래는 1년을 쉬려고 했다 — 1주일 이상 연속으로 쉬어본 적이 없어서. 신청할 때 A 주간반과 B 오후반이 있었는데 오후반을 하고 싶었지만 이미 마감이라 오전반밖에 없었다. 그래서 회사를 빨리 그만두고 프리코스로 다녀보기로 했다. 점수는 5 — 미지수였다. 어떻게 무엇을 배울지도 몰랐으니까." },
+
+    { t:2026.7, s:8, name:"파이 1기 · 현재", period:"2026.7~",
+      note:"프리코스에서 너무 많은 것을 배웠다. 내가 진로를 고민하고 있다는 사실, 어떻게 하면 좋아하는 걸 찾을 수 있을까 하는 것들. 7월 9일 조기심사에 합격하고 8월 24일 입학해 지금 다니고 있다. LP를 할 기회도 받았다. 올해는 돌아본 인생 중 가장 운이 좋은 해가 아닌가 싶다.",
+      full:"프리코스에서 너무 많은 것을 배웠다. 내가 진로에 대해 고민하고 있다는 사실, 어떻게 하면 내가 좋아하는 걸 찾을 수 있을까 하는 것들. 그런 걸 알 수 있는 과정을 밟으면서 ‘정말 좋은 환경이구나’ 생각했다. 7월 9일 조기심사전형에 합격하고 8월 24일 입학해 지금 다니고 있다. LP(Learning Partner)를 할 기회도 받았다. 지금은 그냥 이 순간에 열심히 하고 집중하고 싶다. 정말 운이 좋았던 것 같다 — 올해는 내가 돌아본 인생 중 가장 운이 좋은 해가 아닌가 싶다. 해보고 싶은 것과 환경, 타이밍이 모두 맞아떨어졌고, 그걸 몰입해서 도전할 수 있게 하는 여러 가지가 운 좋게 따라줬으니까." }
+  ];
+
+  var T_MIN = 1998, T_MAX = 2026.7;
+  var S_MIN = 1, S_MAX = 10;
+
+  /* =========================================================
+     2D 그래프 (HUD 미니 + 종착역 대형) — x축 시간, y축 만족도
+     ========================================================= */
+  function esc(str){
+    return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
-  drawTally();
-}
 
-/* ============ 카드 열기 ============ */
-function open(c,flipped){
-  cur=c;
-  var face=document.getElementById('cFace'),
-      act=document.getElementById('cAct'),
-      stat=document.getElementById('cStat');
+  function buildGraph(o){
+    var W = o.w, H = o.h, m = o.m;
+    var pw = W - m.l - m.r, ph = H - m.t - m.b;
+    var X = function(t){ return m.l + (t - T_MIN) / (T_MAX - T_MIN) * pw; };
+    var Y = function(s){ return m.t + (S_MAX - s) / (S_MAX - S_MIN) * ph; };
+    var g = [];
+    var i, x, y;
 
-  if(!flipped){
-    face.innerHTML='<span class="no">'+esc(c.code||c.sub)+'</span>'
-      +'<h2 class="ttl">'+esc(c.title)+'</h2>'
-      +'<p class="q">'+esc(c.q)+'</p>'
-      +'<div class="recall-hint">보지 않고 먼저 말해 보세요. 떠오르지 않는 부분이 어디인지까지 확인한 다음 뒤집습니다.</div>';
-    act.innerHTML='<button class="primary" id="aFlip">뒤집기</button>'
-      +'<span class="sp"></span><button id="aEdit">고치기</button>';
-    document.getElementById('aFlip').onclick=function(){ open(c,true); };
-    document.getElementById('aEdit').onclick=function(){ close('vCard'); openForm(c); };
-    stat.textContent='';
-  }else{
-    var img = c.svg && PLATES[c.svg]
-      ? '<figure class="plateimg">'+PLATES[c.svg]
-        +(c.cap?'<figcaption>'+esc(c.cap)+'</figcaption>':'')+'</figure>' : '';
-    var body = String(c.a||'').split(/\n\n+/).map(function(p){
-      return '<p class="body">'+esc(p)+'</p>'; }).join('');
-    face.innerHTML='<span class="no">'+esc(c.code||c.sub)+'</span>'
-      +'<h2 class="ttl">'+esc(c.title)+'</h2>'
-      +img+body
-      +(c.m?'<div class="memo"><span class="lb">어디서 걸렸나</span>'+esc(c.m)+'</div>':'');
-    act.innerHTML='<button class="got" id="aGot">떠올랐다</button>'
-      +'<button class="miss" id="aMiss">막혔다</button>'
-      +'<span class="sp"></span><button id="aEdit2">고치기</button>';
-    document.getElementById('aGot').onclick=function(){ mark(c,true); };
-    document.getElementById('aMiss').onclick=function(){ mark(c,false); };
-    document.getElementById('aEdit2').onclick=function(){ close('vCard'); openForm(c); };
-    var s=c.st||{};
-    stat.textContent = s.seen ? ('꺼낸 횟수 '+s.seen+' · 떠오름 '+(s.got||0)+' · 막힘 '+(s.miss||0)) : '처음 꺼낸 카드';
+    var gridCls = o.paper ? "p-grid" : "grid-line";
+    var axisCls = o.paper ? "p-axis" : "axis-line";
+    var tickCls = o.paper ? "p-tick" : "tick-txt";
+    var nameCls = o.paper ? "p-axname" : "axis-name";
+    var curveCls = o.paper ? "p-curve" : "curve";
+
+    // 가로 격자 (만족도)
+    for (i = S_MIN; i <= S_MAX; i++){
+      y = Y(i);
+      g.push('<line class="'+gridCls+'" x1="'+m.l+'" y1="'+y+'" x2="'+(m.l+pw)+'" y2="'+y+'"/>');
+      if (o.paper ? true : (i % 3 === 1 || i === 10)){
+        g.push('<text class="'+tickCls+'" x="'+(m.l-7)+'" y="'+(y+3.4)+'" text-anchor="end">'+i+'</text>');
+      }
+    }
+    if (o.paper){
+      g.push('<line class="p-mid" x1="'+m.l+'" y1="'+Y(5)+'" x2="'+(m.l+pw)+'" y2="'+Y(5)+'"/>');
+    }
+
+    // 세로 눈금 (연도)
+    var years = o.paper ? [1998,2001,2004,2007,2010,2013,2016,2019,2022,2026] : [1998,2005,2012,2019,2026];
+    for (i = 0; i < years.length; i++){
+      x = X(Math.min(years[i], T_MAX));
+      g.push('<line class="'+gridCls+'" x1="'+x+'" y1="'+m.t+'" x2="'+x+'" y2="'+(m.t+ph)+'"/>');
+      g.push('<text class="'+tickCls+'" x="'+x+'" y="'+(m.t+ph+14)+'" text-anchor="middle">'+years[i]+'</text>');
+    }
+
+    // 축
+    g.push('<line class="'+axisCls+'" x1="'+m.l+'" y1="'+m.t+'" x2="'+m.l+'" y2="'+(m.t+ph)+'"/>');
+    g.push('<line class="'+axisCls+'" x1="'+m.l+'" y1="'+(m.t+ph)+'" x2="'+(m.l+pw)+'" y2="'+(m.t+ph)+'"/>');
+
+    // 축 이름
+    g.push('<text class="'+nameCls+'" x="'+(m.l+pw)+'" y="'+(m.t+ph+30)+'" text-anchor="end">시간 (연도) →</text>');
+    g.push('<text class="'+nameCls+'" transform="translate('+(m.l-30)+','+(m.t+ph/2)+') rotate(-90)" text-anchor="middle">↑ 만족도 (1~10)</text>');
+
+    // 선
+    var pts = STAGES.map(function(d){ return X(d.t).toFixed(2) + "," + Y(d.s).toFixed(2); }).join(" ");
+    g.push('<polyline class="'+curveCls+'" points="'+pts+'"/>');
+
+    // 점
+    for (i = 0; i < STAGES.length; i++){
+      var d = STAGES[i];
+      x = X(d.t); y = Y(d.s);
+      var hi = (d.s === 8 || d.s === 2);
+      if (o.paper){
+        g.push('<circle class="'+(hi ? "p-dot-hi" : "p-dot")+'" cx="'+x+'" cy="'+y+'" r="'+(hi ? 5 : 3.6)+'"/>');
+        var above = d.s >= 5;
+        g.push('<text class="p-score" x="'+x+'" y="'+(above ? y-24 : y+30)+'" text-anchor="middle">'+d.s+'</text>');
+        var lx = x, anchor = "middle";
+        if (i === 0){ lx = x + 4; anchor = "start"; }
+        if (i === STAGES.length - 1){ lx = x - 4; anchor = "end"; }
+        g.push('<text class="p-lab" x="'+lx+'" y="'+(above ? y-11 : y+17)+'" text-anchor="'+anchor+'">'+esc(d.name)+'</text>');
+      } else {
+        g.push('<circle class="dotpt" cx="'+x+'" cy="'+y+'" r="2.4"/>');
+      }
+    }
+
+    if (!o.paper){
+      g.push('<line id="nowLine" class="nowline" x1="'+m.l+'" y1="'+m.t+'" x2="'+m.l+'" y2="'+(m.t+ph)+'"/>');
+      g.push('<circle id="nowDot" class="nowdot" cx="'+X(T_MIN)+'" cy="'+Y(5)+'" r="4"/>');
+    }
+
+    return {
+      svg: '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+g.join("")+'</svg>',
+      X: X, Y: Y
+    };
   }
-  show('vCard');
-}
-function mark(c,ok){
-  c.st=c.st||{seen:0,got:0,miss:0,last:0,stuck:false};
-  c.st.seen++; c.st.last=Date.now();
-  if(ok){ c.st.got++; c.st.stuck=false; } else { c.st.miss++; c.st.stuck=true; }
-  save(); drawSheet(); close('vCard');
-  toast(ok?'떠올랐다로 기록':'막혔다로 기록 — 다음에 먼저 나옵니다');
-}
 
-/* ============ 무작위 뽑기 ============ */
-document.getElementById('bDraw').onclick=function(){
-  var pool=shown();
-  if(!pool.length){ toast('뽑을 카드가 없습니다'); return; }
-  var stuck=pool.filter(function(c){return c.st&&c.st.stuck;});
-  var fresh=pool.filter(function(c){return !c.st||!c.st.seen;});
-  var pick = stuck.length ? stuck : (fresh.length ? fresh : pool);
-  var c=pick[Math.floor(Math.random()*pick.length)];
-  if(pick.length>1 && c===cur) c=pick[(pick.indexOf(c)+1)%pick.length];
-  open(c,false);
-};
+  var mini = buildGraph({ w:400, h:150, m:{ l:34, r:12, t:12, b:30 }, paper:false });
+  document.getElementById("miniGraph").innerHTML = mini.svg;
+  var nowDot = document.getElementById("nowDot");
+  var nowLine = document.getElementById("nowLine");
 
-/* ============ 폼 ============ */
-function openForm(c){
-  editing=c; autoCode=!c;
-  document.getElementById('fTitle').textContent = c?'카드 고치기':'카드 추가';
-  document.getElementById('iSub').value  = c?c.sub  : (filter==='전체'?'VT':filter);
-  document.getElementById('iCode').value = c?(c.code||'') : nextCode(filter==='전체'?'VT':filter);
-  document.getElementById('iTtl').value  = c?c.title: '';
-  document.getElementById('iQ').value    = c?c.q    : '';
-  document.getElementById('iA').value    = c?c.a    : '';
-  document.getElementById('iM').value    = c?(c.m||''): '';
-  document.getElementById('bDel').style.display = c?'':'none';
-  show('vForm');
-  setTimeout(function(){document.getElementById('iTtl').focus();},50);
-}
-var autoCode=true;
-document.getElementById('iCode').addEventListener('input',function(){ autoCode=false; });
-document.getElementById('iSub').addEventListener('input',function(){
-  if(!editing && autoCode){
-    document.getElementById('iCode').value = nextCode(this.value.trim()||'기타');
+  var big = buildGraph({ w:1000, h:470, m:{ l:64, r:34, t:44, b:62 }, paper:true });
+  document.getElementById("bigChart").innerHTML = big.svg;
+
+  // 기록 표
+  var logHtml = STAGES.map(function(d){
+    return '<tr><td class="nm">'+esc(d.name)+'</td><td class="yr">'+esc(d.period)+'</td>'+
+           '<td class="sc">'+d.s+'</td><td>'+esc(d.full)+'</td></tr>';
+  }).join("");
+  document.getElementById("logBody").innerHTML = logHtml;
+  var avg = STAGES.reduce(function(a,b){ return a + b.s; }, 0) / STAGES.length;
+  document.getElementById("avgTxt").textContent = avg.toFixed(1);
+
+  /* =========================================================
+     3D 롤러코스터
+     ========================================================= */
+  var canvas = document.getElementById("scene");
+  var hud = document.getElementById("hud");
+  var intro = document.getElementById("intro");
+  var ride = document.getElementById("ride");
+
+  var renderer, scene, camera, curve, stageU = [], sky, lava, cloudPlane, embers;
+  var uniformsSky, uniformsLava, uniformsCloud;
+  var hemi, sunLight, fireLight;
+  var running = false;
+
+  var X_PER_YEAR = 220;
+  var Y_PER_SCORE = 90;
+  var LAVA_Y = -430;
+  var CLOUD_Y = 430;
+  var GAUGE = 26;
+  var RIDE_H = 17;
+  var WORLD_UP = null;
+
+  function px(t){ return (t - T_MIN) * X_PER_YEAR; }
+  function py(s){ return (s - 2) * Y_PER_SCORE; }
+  function pz(t){ return Math.sin((t - T_MIN) / (T_MAX - T_MIN) * Math.PI * 3.0) * 135; }
+
+  function buildCurve(){
+    var pts = [];
+    // 진입 구간 (그래프에는 없는 접근 레일)
+    pts.push(new THREE.Vector3(px(T_MIN - 1.4), py(5), pz(T_MIN - 1.4)));
+    for (var i = 0; i < STAGES.length; i++){
+      var d = STAGES[i];
+      pts.push(new THREE.Vector3(px(d.t), py(d.s), pz(d.t)));
+    }
+    // 아직 그려지지 않은 미래 — 하늘로 뻗다가 끊김
+    pts.push(new THREE.Vector3(px(T_MAX + 0.55), py(9.7), pz(T_MAX + 0.55)));
+    var c = new THREE.CatmullRomCurve3(pts, false, "centripetal", 0.5);
+    c.arcLengthDivisions = 4000;
+    return c;
   }
-});
-function nextCode(sub){
-  var n=cards.filter(function(c){return c.sub===sub;}).length+1;
-  return sub+'-'+String(n).padStart(2,'0');
-}
-document.getElementById('bSave').onclick=function(){
-  var sub=document.getElementById('iSub').value.trim()||'기타',
-      ttl=document.getElementById('iTtl').value.trim(),
-      q  =document.getElementById('iQ').value.trim(),
-      a  =document.getElementById('iA').value.trim();
-  if(!ttl||!q||!a){ toast('개념 이름 · 질문 · 내 정리는 채워야 합니다'); return; }
-  if(editing){
-    editing.sub=sub; editing.code=document.getElementById('iCode').value.trim();
-    editing.title=ttl; editing.q=q; editing.a=a;
-    editing.m=document.getElementById('iM').value.trim();
-  }else{
-    cards.push({
-      id:'c'+Date.now(), sub:sub,
-      code:document.getElementById('iCode').value.trim()||nextCode(sub),
-      title:ttl, q:q, a:a, m:document.getElementById('iM').value.trim(),
-      st:{seen:0,got:0,miss:0,last:0,stuck:false}
+
+  function smoothCurve(points){
+    var c = new THREE.CatmullRomCurve3(points);
+    c.arcLengthDivisions = 3000;
+    return c;
+  }
+
+  function mapStageU(){
+    var N = 3000;
+    var samples = [];
+    for (var i = 0; i <= N; i++) samples.push(curve.getPointAt(i / N));
+    for (var s = 0; s < STAGES.length; s++){
+      var target = new THREE.Vector3(px(STAGES[s].t), py(STAGES[s].s), pz(STAGES[s].t));
+      var bestI = 0, bestD = Infinity;
+      for (var j = 0; j <= N; j++){
+        var d2 = samples[j].distanceToSquared(target);
+        if (d2 < bestD){ bestD = d2; bestI = j; }
+      }
+      stageU.push(bestI / N);
+    }
+  }
+
+  var NOISE_GLSL = [
+    "float hash13(vec3 p){ return fract(sin(dot(p, vec3(127.1,311.7,74.7))) * 43758.5453123); }",
+    "float vnoise(vec3 p){",
+    "  vec3 i = floor(p); vec3 f = fract(p); f = f*f*(3.0-2.0*f);",
+    "  float n000=hash13(i); float n100=hash13(i+vec3(1.0,0.0,0.0));",
+    "  float n010=hash13(i+vec3(0.0,1.0,0.0)); float n110=hash13(i+vec3(1.0,1.0,0.0));",
+    "  float n001=hash13(i+vec3(0.0,0.0,1.0)); float n101=hash13(i+vec3(1.0,0.0,1.0));",
+    "  float n011=hash13(i+vec3(0.0,1.0,1.0)); float n111=hash13(i+vec3(1.0,1.0,1.0));",
+    "  return mix(mix(mix(n000,n100,f.x), mix(n010,n110,f.x), f.y),",
+    "             mix(mix(n001,n101,f.x), mix(n011,n111,f.x), f.y), f.z);",
+    "}",
+    "float fbm(vec3 p){ float v=0.0; float a=0.5; for(int i=0;i<5;i++){ v+=a*vnoise(p); p*=2.02; a*=0.5; } return v; }"
+  ].join("\n");
+
+  function makeSky(){
+    uniformsSky = { uBlend:{value:0.5}, uTime:{value:0} };
+    var mat = new THREE.ShaderMaterial({
+      uniforms: uniformsSky,
+      side: THREE.BackSide,
+      depthWrite: false,
+      vertexShader: [
+        "varying vec3 vDir;",
+        "void main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }"
+      ].join("\n"),
+      fragmentShader: [
+        "precision highp float;",
+        "uniform float uBlend; uniform float uTime;",
+        "varying vec3 vDir;",
+        NOISE_GLSL,
+        "void main(){",
+        "  vec3 d = normalize(vDir);",
+        "  float h = d.y;",
+        "  float t = uTime * 0.014;",
+        "  float smoke = fbm(d * 2.6 + vec3(t, t*0.35, 0.0));",
+        "  float cl = fbm(d * 2.1 + vec3(t*0.55, 0.0, t*0.2));",
+        "  vec3 hell = mix(vec3(1.0,0.30,0.045), vec3(0.055,0.014,0.014), smoothstep(-0.28,0.55,h));",
+        "  hell += vec3(1.0,0.42,0.09) * pow(max(0.0, 1.0 - abs(h + 0.08) * 2.0), 3.0) * (0.5 + 0.9*smoke);",
+        "  hell *= (0.48 + 0.95 * smoke);",
+        "  hell = mix(hell, vec3(0.045,0.018,0.020), smoothstep(0.12,1.0,h) * 0.72);",
+        "  vec3 hv = mix(vec3(1.0,0.965,0.905), vec3(0.775,0.825,0.90), smoothstep(-0.28,0.95,h));",
+        "  float puff = smoothstep(0.38,0.72, cl);",
+        "  hv = mix(hv, vec3(1.0,0.995,0.985), puff * 0.92);",
+        "  hv += vec3(1.0,0.925,0.785) * pow(max(0.0,h), 2.2) * 0.30;",
+        "  vec3 mid = mix(vec3(0.50,0.535,0.585), vec3(0.735,0.775,0.825), smoothstep(-0.28,0.85,h));",
+        "  vec3 col = mix(hell, hv, uBlend);",
+        "  float w = 1.0 - abs(uBlend * 2.0 - 1.0);",
+        "  col = mix(col, mid, w * 0.42);",
+        "  gl_FragColor = vec4(col, 1.0);",
+        "}"
+      ].join("\n")
     });
+    sky = new THREE.Mesh(new THREE.SphereGeometry(9000, 40, 26), mat);
+    sky.frustumCulled = false;
+    scene.add(sky);
   }
-  save(); drawSubs(); drawSheet(); close('vForm');
-  toast(editing?'고쳤습니다':'카드를 넣었습니다');
-};
-document.getElementById('bDel').onclick=function(){
-  if(!editing) return;
-  if(!confirm('"'+editing.title+'" 카드를 지웁니다. 되돌릴 수 없습니다.')) return;
-  cards=cards.filter(function(c){return c!==editing;});
-  save(); drawSubs(); drawSheet(); close('vForm'); toast('지웠습니다');
-};
 
-/* ============ 내보내기 / 불러오기 ============ */
-document.getElementById('bOut').onclick=function(){
-  var blob=new Blob([JSON.stringify(cards,null,2)],{type:'application/json'});
-  var a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='도판함-'+new Date().toISOString().slice(0,10)+'.json';
-  a.click(); URL.revokeObjectURL(a.href);
-  toast('카드 '+cards.length+'장을 내보냈습니다');
-};
-document.getElementById('bIn').onclick=function(){ document.getElementById('fIn').click(); };
-document.getElementById('fIn').onchange=function(e){
-  var f=e.target.files[0]; if(!f) return;
-  var r=new FileReader();
-  r.onload=function(){
-    try{
-      var got=JSON.parse(r.result);
-      if(!Array.isArray(got)) throw 0;
-      var have={}; cards.forEach(function(c){have[c.id]=1;});
-      var added=0;
-      got.forEach(function(c){ if(c&&c.title&&!have[c.id]){ cards.push(c); added++; } });
-      save(); drawSubs(); drawSheet();
-      toast(added?('카드 '+added+'장을 더했습니다'):'새로 더할 카드가 없습니다');
-    }catch(err){ toast('읽을 수 없는 파일입니다'); }
-    e.target.value='';
+  function makeLava(){
+    uniformsLava = { uTime:{value:0}, uVis:{value:1}, uFog:{value:new THREE.Color(0x7C838C)} };
+    var mat = new THREE.ShaderMaterial({
+      uniforms: uniformsLava,
+      fog: false,
+      transparent: true,
+      depthWrite: false,
+      vertexShader: [
+        "varying vec2 vUv;",
+        "void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }"
+      ].join("\n"),
+      fragmentShader: [
+        "precision highp float;",
+        "uniform float uTime; uniform float uVis; uniform vec3 uFog;",
+        "varying vec2 vUv;",
+        NOISE_GLSL,
+        "void main(){",
+        "  vec2 p = vUv * 26.0;",
+        "  float n  = fbm(vec3(p, uTime * 0.030));",
+        "  float n2 = fbm(vec3(p * 2.3 + 11.0, uTime * 0.048));",
+        "  float cracks = smoothstep(0.40, 0.575, n) * smoothstep(0.66, 0.42, n2);",
+        "  vec3 rock = mix(vec3(0.030,0.024,0.026), vec3(0.105,0.075,0.068), n2);",
+        "  vec3 lava = mix(vec3(1.0,0.28,0.03), vec3(1.0,0.82,0.32), smoothstep(0.44,0.70,n));",
+        "  vec3 col = mix(rock, lava, cracks);",
+        "  col += lava * cracks * 0.75;",
+        "  col = mix(uFog, col, uVis);",
+        "  float a = smoothstep(0.0, 0.30, uVis);",
+        "  gl_FragColor = vec4(col, a);",
+        "}"
+      ].join("\n")
+    });
+    lava = new THREE.Mesh(new THREE.PlaneGeometry(26000, 26000, 1, 1), mat);
+    lava.rotation.x = -Math.PI / 2;
+    lava.position.y = LAVA_Y;
+    lava.frustumCulled = false;
+    scene.add(lava);
+  }
+
+  function makeClouds(){
+    uniformsCloud = { uTime:{value:0} };
+    var mat = new THREE.ShaderMaterial({
+      uniforms: uniformsCloud,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      fog: false,
+      vertexShader: [
+        "varying vec2 vUv;",
+        "void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }"
+      ].join("\n"),
+      fragmentShader: [
+        "precision highp float;",
+        "uniform float uTime;",
+        "varying vec2 vUv;",
+        NOISE_GLSL,
+        "void main(){",
+        "  vec2 p = vUv * 17.0;",
+        "  float n = fbm(vec3(p, uTime * 0.016));",
+        "  float a = smoothstep(0.40, 0.70, n);",
+        "  vec3 c = mix(vec3(0.90,0.915,0.945), vec3(1.0,0.995,0.975), n);",
+        "  gl_FragColor = vec4(c, a * 0.93);",
+        "}"
+      ].join("\n")
+    });
+    cloudPlane = new THREE.Mesh(new THREE.PlaneGeometry(26000, 26000, 1, 1), mat);
+    cloudPlane.rotation.x = Math.PI / 2;
+    cloudPlane.position.y = CLOUD_Y;
+    cloudPlane.frustumCulled = false;
+    scene.add(cloudPlane);
+  }
+
+  function makeTrack(){
+    var SAMPLES = 1500;
+    var left = [], right = [], spine = [];
+    var i, u, P, T, R, U;
+
+    for (i = 0; i <= SAMPLES; i++){
+      u = i / SAMPLES;
+      P = curve.getPointAt(u);
+      T = curve.getTangentAt(u).normalize();
+      R = new THREE.Vector3().crossVectors(T, WORLD_UP);
+      if (R.lengthSq() < 1e-6) R.set(1,0,0);
+      R.normalize();
+      U = new THREE.Vector3().crossVectors(R, T).normalize();
+      left.push(P.clone().addScaledVector(R,  GAUGE / 2));
+      right.push(P.clone().addScaledVector(R, -GAUGE / 2));
+      spine.push(P.clone().addScaledVector(U, -9));
+    }
+
+    var steel = new THREE.MeshStandardMaterial({ color:0x0C0D10, metalness:0.55, roughness:0.34 });
+    var steelDark = new THREE.MeshStandardMaterial({ color:0x070809, metalness:0.30, roughness:0.58 });
+
+    var railGeoL = new THREE.TubeGeometry(smoothCurve(left), 1400, 2.3, 7, false);
+    var railGeoR = new THREE.TubeGeometry(smoothCurve(right), 1400, 2.3, 7, false);
+    var spineGeo = new THREE.TubeGeometry(smoothCurve(spine), 1000, 4.2, 7, false);
+    scene.add(new THREE.Mesh(railGeoL, steel));
+    scene.add(new THREE.Mesh(railGeoR, steel));
+    scene.add(new THREE.Mesh(spineGeo, steelDark));
+
+    // 침목
+    var tieStep = 5;
+    var tieCount = Math.floor(SAMPLES / tieStep);
+    var tieGeo = new THREE.BoxGeometry(GAUGE + 9, 2.6, 7.5);
+    var ties = new THREE.InstancedMesh(tieGeo, steelDark, tieCount);
+    var m4 = new THREE.Matrix4();
+    var k = 0;
+    for (i = 0; i < tieCount; i++){
+      u = (i * tieStep) / SAMPLES;
+      if (u > 1) break;
+      P = curve.getPointAt(u);
+      T = curve.getTangentAt(u).normalize();
+      R = new THREE.Vector3().crossVectors(T, WORLD_UP);
+      if (R.lengthSq() < 1e-6) R.set(1,0,0);
+      R.normalize();
+      U = new THREE.Vector3().crossVectors(R, T).normalize();
+      m4.makeBasis(R, U, T);
+      m4.setPosition(P.clone().addScaledVector(U, -5));
+      ties.setMatrixAt(k++, m4);
+    }
+    ties.count = k;
+    ties.instanceMatrix.needsUpdate = true;
+    scene.add(ties);
+
+  }
+
+  function makeEmbers(){
+    var N = 700;
+    var g = new THREE.BufferGeometry();
+    var pos = new Float32Array(N * 3);
+    var spd = new Float32Array(N);
+    for (var i = 0; i < N; i++){
+      pos[i*3]   = (Math.random() - 0.1) * px(T_MAX + 1);
+      pos[i*3+1] = LAVA_Y + Math.random() * 620;
+      pos[i*3+2] = (Math.random() - 0.5) * 1800;
+      spd[i] = 12 + Math.random() * 46;
+    }
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    var c = document.createElement("canvas");
+    c.width = c.height = 64;
+    var ctx = c.getContext("2d");
+    var grd = ctx.createRadialGradient(32,32,0,32,32,32);
+    grd.addColorStop(0, "rgba(255,225,170,1)");
+    grd.addColorStop(0.3, "rgba(255,140,40,0.85)");
+    grd.addColorStop(1, "rgba(255,90,20,0)");
+    ctx.fillStyle = grd;
+    ctx.fillRect(0,0,64,64);
+    var tex = new THREE.CanvasTexture(c);
+    var mat = new THREE.PointsMaterial({
+      size: 13, map: tex, transparent: true, depthWrite: false,
+      blending: THREE.AdditiveBlending, opacity: 0.9
+    });
+    embers = new THREE.Points(g, mat);
+    embers.userData.spd = spd;
+    embers.frustumCulled = false;
+    scene.add(embers);
+  }
+
+  var HELL_FOG, MID_FOG, HEAVEN_FOG, HELL_LIGHT, HEAVEN_LIGHT, HELL_GROUND, HEAVEN_GROUND;
+  var tmpA, tmpB, tmpC, MID_LIGHT;
+  var elapsed = 0;
+
+  /* three.js가 있어야만 만들 수 있는 값들.
+     최상위에서 만들면 CDN 한 번 실패에 선반과 자기소개까지 같이 죽으므로 지연 생성한다. */
+  function initThreeConsts(){
+    WORLD_UP = new THREE.Vector3(0,1,0);
+    HELL_FOG = new THREE.Color(0x2E0A05);
+    MID_FOG  = new THREE.Color(0x7C838C);
+    HEAVEN_FOG = new THREE.Color(0xF0E9DC);
+    HELL_LIGHT = new THREE.Color(0xFF6A28);
+    HEAVEN_LIGHT = new THREE.Color(0xFFF6E6);
+    HELL_GROUND = new THREE.Color(0xFF4A10);
+    HEAVEN_GROUND = new THREE.Color(0xE9EDF2);
+    tmpA = new THREE.Color(); tmpB = new THREE.Color(); tmpC = new THREE.Color();
+    MID_LIGHT = new THREE.Color(0xD8DEE4);
+    camPos = new THREE.Vector3();
+    lookAt = new THREE.Vector3();
+    upVec  = new THREE.Vector3();
+  }
+
+  function initGL(){
+    initThreeConsts();
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.02;
+
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x7C838C, 0.00017);
+
+    camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 1, 22000);
+
+    curve = buildCurve();
+    mapStageU();
+
+    makeSky();
+    makeLava();
+    makeClouds();
+    makeTrack();
+    makeEmbers();
+
+    hemi = new THREE.HemisphereLight(0xFFFFFF, 0xFF4A10, 0.85);
+    scene.add(hemi);
+    sunLight = new THREE.DirectionalLight(0xFFF6E6, 0.85);
+    sunLight.position.set(0.35, 1, 0.25);
+    scene.add(sunLight);
+    fireLight = new THREE.DirectionalLight(0xFF6A28, 0.9);
+    fireLight.position.set(-0.2, -1, 0.1);
+    scene.add(fireLight);
+
+    running = true;
+  }
+
+  /* ---------- 스크롤 → 레일 위 위치 ----------
+     각 시기에서 진행이 멈추고(dwell), 시기 사이에서만 이동(travel).
+     이동 구간의 길이는 실제 레일 거리에 비례한다. */
+  var uTarget = 0, uCurrent = 0, lastStage = -1;
+  var uStart, uEnd, SCHEDULE = null, atStop = false;
+
+  function buildSchedule(){
+    var n = STAGES.length;
+    var travelLen = [], total = 0, i;
+    for (i = 0; i < n - 1; i++){
+      var d = Math.max(1e-6, stageU[i+1] - stageU[i]);
+      travelLen.push(d);
+      total += d;
+    }
+    var DWELL_TOTAL = 0.42;
+    var TRAVEL_TOTAL = 1 - DWELL_TOTAL;
+    var dwellEach = DWELL_TOTAL / n;
+    var segs = [], cursor = 0;
+    for (i = 0; i < n; i++){
+      segs.push({ dwell:true, a:cursor, b:cursor + dwellEach, uA:stageU[i], uB:stageU[i] });
+      cursor += dwellEach;
+      if (i < n - 1){
+        var w = TRAVEL_TOTAL * (travelLen[i] / total);
+        segs.push({ dwell:false, a:cursor, b:cursor + w, uA:stageU[i], uB:stageU[i+1] });
+        cursor += w;
+      }
+    }
+    for (i = 0; i < segs.length; i++){ segs[i].a /= cursor; segs[i].b /= cursor; }
+    return segs;
+  }
+
+  function progressToU(p){
+    var segs = SCHEDULE;
+    if (p <= 0){ atStop = true; return segs[0].uA; }
+    if (p >= 1){ atStop = true; return segs[segs.length - 1].uB; }
+    for (var i = 0; i < segs.length; i++){
+      var s = segs[i];
+      if (p >= s.a && p <= s.b){
+        atStop = s.dwell;
+        if (s.dwell) return s.uA;
+        var f = (p - s.a) / Math.max(1e-9, s.b - s.a);
+        var e = f * f * (3 - 2 * f);
+        return s.uA + (s.uB - s.uA) * e;
+      }
+    }
+    atStop = true;
+    return segs[segs.length - 1].uB;
+  }
+
+  function scrollProgress(){
+    var h = ride.offsetHeight - window.innerHeight;
+    if (h <= 0) return 0;
+    return Math.max(0, Math.min(1, window.scrollY / h));
+  }
+
+  var yrTxt = document.getElementById("yrTxt");
+  var scTxt = document.getElementById("scTxt");
+  var stName = document.getElementById("stName");
+  var stPeriod = document.getElementById("stPeriod");
+  var stNote = document.getElementById("stNote");
+  var stMeter = document.getElementById("stMeter");
+  var stScore = document.getElementById("stScore");
+
+  function stateAtU(u){
+    // 현재 u가 어느 두 지점 사이인지 → 연도·점수 보간
+    if (u <= stageU[0]) return { year: STAGES[0].t, score: STAGES[0].s, idx: 0 };
+    var last = STAGES.length - 1;
+    if (u >= stageU[last]) return { year: STAGES[last].t, score: STAGES[last].s, idx: last };
+    for (var i = 0; i < last; i++){
+      if (u >= stageU[i] && u <= stageU[i+1]){
+        var f = (u - stageU[i]) / Math.max(1e-6, stageU[i+1] - stageU[i]);
+        return {
+          year: STAGES[i].t + (STAGES[i+1].t - STAGES[i].t) * f,
+          score: STAGES[i].s + (STAGES[i+1].s - STAGES[i].s) * f,
+          idx: f > 0.5 ? i + 1 : i
+        };
+      }
+    }
+    return { year: STAGES[last].t, score: STAGES[last].s, idx: last };
+  }
+
+  function updateHud(st){
+    yrTxt.textContent = Math.floor(st.year);
+    scTxt.textContent = st.score.toFixed(1);
+    if (st.idx !== lastStage){
+      lastStage = st.idx;
+      var d = STAGES[st.idx];
+      stName.textContent = d.name;
+      stPeriod.textContent = d.period;
+      stNote.textContent = d.note;
+      stScore.textContent = d.s;
+      stMeter.style.width = ((d.s - 1) / 9 * 100).toFixed(1) + "%";
+    }
+    if (nowDot){
+      nowDot.setAttribute("cx", mini.X(st.year).toFixed(2));
+      nowDot.setAttribute("cy", mini.Y(st.score).toFixed(2));
+      nowLine.setAttribute("x1", mini.X(st.year).toFixed(2));
+      nowLine.setAttribute("x2", mini.X(st.year).toFixed(2));
+    }
+  }
+
+  var camPos = null, lookAt = null, upVec = null;
+  var clock;
+
+  var offstage = false;
+  var loopOn = false;
+  var stopShown = null;
+  var stageCardEl = document.getElementById("stageCard");
+
+  function frame(){
+    if (!running || !loopOn) return;
+    requestAnimationFrame(frame);
+    if (offstage){ clock.getDelta(); return; }
+
+    uTarget = progressToU(scrollProgress());
+    uCurrent += (uTarget - uCurrent) * 0.075;
+    if (atStop !== stopShown){
+      stopShown = atStop;
+      stageCardEl.classList.toggle("at-stop", atStop);
+    }
+
+    var u = Math.max(0, Math.min(1, uCurrent));
+    var P = curve.getPointAt(u);
+    var T = curve.getTangentAt(u).normalize();
+    var uAhead = Math.min(1, u + 0.0035);
+    var Pa = curve.getPointAt(uAhead);
+    var Ta = curve.getTangentAt(uAhead).normalize();
+
+    // 수평 회전량 → 뱅킹
+    var a = Math.atan2(T.x, T.z);
+    var b = Math.atan2(Ta.x, Ta.z);
+    var dd = b - a;
+    while (dd > Math.PI) dd -= Math.PI * 2;
+    while (dd < -Math.PI) dd += Math.PI * 2;
+    var bank = Math.max(-0.26, Math.min(0.26, dd * 9));
+
+    camPos.copy(P); camPos.y += RIDE_H;
+    lookAt.copy(Pa); lookAt.y += RIDE_H;
+    upVec.set(0,1,0).applyAxisAngle(T, bank);
+
+    camera.position.copy(camPos);
+    camera.up.copy(upVec);
+    camera.lookAt(lookAt);
+
+    // 높이 → 지옥/천국 blend
+    var blend = Math.max(0, Math.min(1, (P.y / (6 * Y_PER_SCORE))));
+    var eased = blend * blend * (3 - 2 * blend);
+    uniformsSky.uBlend.value = eased;
+
+    // 지옥 바닥: 4점 이하에서 드러나고 5점부터 사라짐
+    var curScore = P.y / Y_PER_SCORE + 2;
+    var lv = (curScore - 4.0) / 1.0;
+    lv = Math.max(0, Math.min(1, lv));
+    var lavaVis = 1 - (lv * lv * (3 - 2 * lv));
+
+    var dt = Math.min(0.05, clock.getDelta());
+    elapsed += dt;
+    uniformsSky.uTime.value = elapsed;
+    uniformsLava.uTime.value = elapsed;
+    uniformsLava.uVis.value = lavaVis;
+    lava.visible = lavaVis > 0.005;
+    uniformsCloud.uTime.value = elapsed;
+
+    // 안개·조명 보간
+    if (eased < 0.5){
+      tmpA.copy(HELL_FOG).lerp(MID_FOG, eased * 2);
+      tmpB.copy(HELL_LIGHT).lerp(MID_LIGHT, eased * 2);
+    } else {
+      tmpA.copy(MID_FOG).lerp(HEAVEN_FOG, (eased - 0.5) * 2);
+      tmpB.copy(MID_LIGHT).lerp(HEAVEN_LIGHT, (eased - 0.5) * 2);
+    }
+    scene.fog.color.copy(tmpA);
+    renderer.setClearColor(tmpA, 1);
+    uniformsLava.uFog.value.copy(tmpA);
+    sunLight.color.copy(tmpB);
+    sunLight.intensity = 0.35 + eased * 0.8;
+    fireLight.intensity = 1.15 * lavaVis;
+    hemi.color.copy(tmpB);
+    tmpC.copy(tmpA).lerp(HELL_GROUND, lavaVis);
+    hemi.groundColor.copy(tmpC);
+    hemi.intensity = 0.55 + eased * 0.5;
+
+    // 하늘·바닥은 카메라를 따라옴
+    sky.position.copy(camera.position);
+    lava.position.x = camera.position.x; lava.position.z = camera.position.z;
+    cloudPlane.position.x = camera.position.x; cloudPlane.position.z = camera.position.z;
+
+    // 불티
+    var arr = embers.geometry.attributes.position.array;
+    var spd = embers.userData.spd;
+    for (var i = 0; i < spd.length; i++){
+      arr[i*3+1] += spd[i] * dt;
+      if (arr[i*3+1] > LAVA_Y + 700){
+        arr[i*3+1] = LAVA_Y + 10;
+        arr[i*3]   = camera.position.x + (Math.random() - 0.5) * 2600;
+        arr[i*3+2] = camera.position.z + (Math.random() - 0.5) * 2000;
+      }
+    }
+    embers.geometry.attributes.position.needsUpdate = true;
+    embers.material.opacity = 0.9 * lavaVis;
+    embers.visible = lavaVis > 0.01;
+
+    var st = stateAtU(u);
+    updateHud(st);
+
+    renderer.render(scene, camera);
+  }
+
+  function onResize(){
+    if (!running) return;
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+  }
+
+  function onScroll(){
+    var p = scrollProgress();
+    intro.style.opacity = String(Math.max(0, 1 - p * 26));
+    var pastRide = window.scrollY > (ride.offsetHeight - window.innerHeight * 0.85);
+    hud.style.opacity = pastRide ? "0" : "1";
+    offstage = window.scrollY > (ride.offsetHeight - window.innerHeight * 0.15);
+  }
+
+  var rideBooted = false;
+
+  function bootRide(){
+    if (rideBooted) return;
+    rideBooted = true;
+    try {
+      if (!window.THREE) throw new Error("three.js 로드 실패");
+      initGL();
+      uStart = stageU[0];
+      uEnd = stageU[STAGES.length - 1];
+      SCHEDULE = buildSchedule();
+      uCurrent = uStart;
+      clock = new THREE.Clock();
+      lastStage = -1;
+      updateHud(stateAtU(uStart));
+      window.addEventListener("resize", onResize);
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    } catch (err){
+      running = false;
+      canvas.style.display = "none";
+      hud.style.display = "none";
+      intro.style.display = "none";
+      ride.style.display = "none";
+      document.getElementById("glFail").style.display = "block";
+    }
+  }
+
+  function startLoop(){
+    if (!running || loopOn) return;
+    loopOn = true;
+    if (clock) clock.getDelta();
+    requestAnimationFrame(frame);
+  }
+
+  /* =========================================================
+     그래프 이미지 저장
+     ========================================================= */
+  var saveBtn = document.getElementById("saveBtn");
+  var saveMsg = document.getElementById("saveMsg");
+
+  saveBtn.addEventListener("click", async function(){
+    var downloads = null;
+    try {
+      if (window.claude && window.claude.use) downloads = await window.claude.use("downloads");
+    } catch (e) { downloads = null; }
+    if (!downloads){
+      saveMsg.textContent = "이 화면에서는 저장을 쓸 수 없어요. 스크린샷을 이용해주세요.";
+      return;
+    }
+    saveMsg.textContent = "이미지를 만드는 중…";
+
+    var W = 1000, H = 470, scale = 2;
+    var svgEl = document.querySelector("#bigChart svg").cloneNode(true);
+    svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    var style = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    style.textContent =
+      ".p-grid{stroke:#D6D2C4;stroke-width:1;fill:none}" +
+      ".p-axis{stroke:#3A3A33;stroke-width:1.2;fill:none}" +
+      ".p-mid{stroke:#B9B4A3;stroke-width:1;stroke-dasharray:4 4;fill:none}" +
+      ".p-curve{fill:none;stroke:#16181B;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}" +
+      ".p-dot{fill:#16181B}.p-dot-hi{fill:#C6421A}" +
+      ".p-tick{font-family:sans-serif;font-size:10px;fill:#6B6A61}" +
+      ".p-axname{font-family:sans-serif;font-size:11px;fill:#4A4A43}" +
+      ".p-lab{font-family:sans-serif;font-size:10px;fill:#4A4A43}" +
+      ".p-score{font-family:sans-serif;font-size:10px;fill:#16181B;font-weight:500}";
+    svgEl.insertBefore(style, svgEl.firstChild);
+    var bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    bgRect.setAttribute("x","0"); bgRect.setAttribute("y","0");
+    bgRect.setAttribute("width", String(W)); bgRect.setAttribute("height", String(H));
+    bgRect.setAttribute("fill", "#F7F6F1");
+    svgEl.insertBefore(bgRect, style.nextSibling);
+
+    var data = new XMLSerializer().serializeToString(svgEl);
+    var blob = new Blob([data], { type:"image/svg+xml;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var img = new Image();
+    img.onload = function(){
+      var cv = document.createElement("canvas");
+      cv.width = W * scale; cv.height = H * scale;
+      var cx = cv.getContext("2d");
+      cx.fillStyle = "#F7F6F1";
+      cx.fillRect(0,0,cv.width,cv.height);
+      cx.scale(scale, scale);
+      cx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      cv.toBlob(async function(png){
+        try {
+          await downloads.save({ filename: "인생그래프-1998-2026.png", data: png });
+          saveMsg.textContent = "저장했습니다.";
+        } catch (e){
+          saveMsg.textContent = "저장이 취소되었어요.";
+        }
+      }, "image/png");
+    };
+    img.onerror = function(){
+      URL.revokeObjectURL(url);
+      saveMsg.textContent = "이미지 변환에 실패했어요. 스크린샷을 이용해주세요.";
+    };
+    img.src = url;
+  });
+
+  /* =========================================================
+     홈 — 10칸 선반
+     ========================================================= */
+  function coasterCover(){
+    var xa = 26, xb = 274, ya = 214, yb = 104;
+    var X = function(t){ return xa + (t - T_MIN) / (T_MAX - T_MIN) * (xb - xa); };
+    var Y = function(s){ return ya - (s - 1) / 9 * (ya - yb); };
+
+    var line = STAGES.map(function(d){ return X(d.t).toFixed(1) + "," + Y(d.s).toFixed(1); }).join(" ");
+
+    var dots = STAGES.map(function(d){
+      var hi = (d.s === 8 || d.s === 2);
+      return '<circle cx="'+X(d.t).toFixed(1)+'" cy="'+Y(d.s).toFixed(1)+'" r="'+(hi ? 3.4 : 1.9)+
+             '" fill="'+(hi ? "#FFB870" : "rgba(255,252,245,.72)")+'"/>';
+    }).join("");
+
+    var ties = [];
+    for (var i = 0; i < STAGES.length - 1; i++){
+      var x1 = X(STAGES[i].t), y1 = Y(STAGES[i].s);
+      var x2 = X(STAGES[i+1].t), y2 = Y(STAGES[i+1].s);
+      for (var k = 1; k < 6; k++){
+        var f = k / 6;
+        var mx = x1 + (x2 - x1) * f, my = y1 + (y2 - y1) * f;
+        ties.push('<line x1="'+(mx-3.5).toFixed(1)+'" y1="'+(my+5).toFixed(1)+
+                  '" x2="'+(mx+3.5).toFixed(1)+'" y2="'+(my+5).toFixed(1)+'"/>');
+      }
+    }
+
+    return [
+      '<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="인생 롤러코스터 커버">',
+      '<defs>',
+      '<linearGradient id="cvSky" x1="0" y1="0" x2="0" y2="1">',
+      '<stop offset="0%" stop-color="#EAEFF5"/>',
+      '<stop offset="17%" stop-color="#A9B2C0"/>',
+      '<stop offset="40%" stop-color="#2C2831"/>',
+      '<stop offset="66%" stop-color="#100B0E"/>',
+      '<stop offset="87%" stop-color="#8A2605"/>',
+      '<stop offset="100%" stop-color="#FF6320"/>',
+      '</linearGradient>',
+      '<radialGradient id="cvHalo" cx="50%" cy="4%" r="46%">',
+      '<stop offset="0%" stop-color="#FFF8E8" stop-opacity=".62"/>',
+      '<stop offset="100%" stop-color="#FFF8E8" stop-opacity="0"/>',
+      '</radialGradient>',
+      '<radialGradient id="cvFire" cx="50%" cy="100%" r="62%">',
+      '<stop offset="0%" stop-color="#FFB03A" stop-opacity=".95"/>',
+      '<stop offset="55%" stop-color="#FF4E10" stop-opacity=".45"/>',
+      '<stop offset="100%" stop-color="#FF4E10" stop-opacity="0"/>',
+      '</radialGradient>',
+      '</defs>',
+      '<rect width="300" height="300" fill="url(#cvSky)"/>',
+      '<rect width="300" height="300" fill="url(#cvHalo)"/>',
+      '<rect width="300" height="300" fill="url(#cvFire)"/>',
+      '<g stroke="rgba(255,250,242,.20)" stroke-width="1">' + ties.join("") + '</g>',
+      '<polyline points="'+line+'" fill="none" stroke="rgba(255,250,242,.30)" stroke-width="5.5" stroke-linejoin="round" stroke-linecap="round"/>',
+      '<polyline points="'+line+'" fill="none" stroke="#FFFDF7" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>',
+      dots,
+      '<text x="24" y="36" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="2.6" fill="rgba(255,250,242,.66)">WEEK 01</text>',
+      '<text x="24" y="262" font-family="Noto Serif KR, serif" font-weight="900" font-size="27" fill="#FFFDF7">인생 롤러코스터</text>',
+      '<text x="24" y="281" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.8" fill="rgba(255,250,242,.72)">1998 — 2026 · 만족도 그래프</text>',
+      '</svg>'
+    ].join("");
+  }
+
+  var rack = document.getElementById("rack");
+  var slots = [];
+
+  slots.push(
+    '<a class="slot filled" href="#/week1" aria-label="1주차 · 인생 롤러코스터 열기">' +
+      '<span class="glow"></span>' +
+      '<span class="cover">' + coasterCover() + '</span>' +
+    '</a>'
+  );
+  slots.push(
+    '<a class="slot filled" href="#/week2" aria-label="2주차 · 자기소개 열기">' +
+      '<span class="glow"></span>' +
+      '<span class="cover">' + w2Cover() + '</span>' +
+    '</a>'
+  );
+  for (var wk = 3; wk <= 10; wk++){
+    var nn = wk < 10 ? "0" + wk : String(wk);
+    slots.push(
+      '<div class="slot empty" aria-label="' + wk + '주차 · 비어 있음">' +
+        '<span class="glow"></span>' +
+        '<span class="cover blank">' +
+          '<span class="num">' + nn + '</span>' +
+          '<span class="wk">week ' + nn + '</span>' +
+        '</span>' +
+      '</div>'
+    );
+  }
+
+  function perRow(){
+    var w = window.innerWidth;
+    return w <= 640 ? 2 : (w <= 1080 ? 3 : 5);
+  }
+
+  var lastN = 0;
+  function renderRack(){
+    var n = perRow();
+    if (n === lastN) return;
+    lastN = n;
+    var rows = [];
+    for (var i = 0; i < slots.length; i += n){
+      rows.push('<div class="row" style="grid-template-columns:repeat('+n+',1fr)">' +
+                slots.slice(i, i + n).join("") + '</div>');
+    }
+    rack.innerHTML = rows.join("");
+  }
+  renderRack();
+
+  var rackTimer = null;
+  window.addEventListener("resize", function(){
+    if (rackTimer) clearTimeout(rackTimer);
+    rackTimer = setTimeout(renderRack, 140);
+  });
+
+
+  /* =========================================================
+     2주차 — 자기소개 (허브 앤 스포크)
+     ========================================================= */
+  var W2_FIG = {};
+
+  W2_FIG.pizza = function(){
+    var cx = 150, cy = 172, Rout = 112, Rche = 95;
+    var g = [];
+    var i, a;
+
+    g.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+Rout+'" fill="#F0EADA" stroke="#D9D4C5" stroke-width="1.2"/>');
+    g.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+Rche+'" fill="#F6EFDA" stroke="#DFD6BE" stroke-width="1"/>');
+
+    // 슬라이스
+    for (i = 0; i < 8; i++){
+      a = (Math.PI * 2 / 8) * i - Math.PI / 2;
+      g.push('<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx + Math.cos(a) * Rche).toFixed(1)+
+             '" y2="'+(cy + Math.sin(a) * Rche).toFixed(1)+'" stroke="#E2D9C2" stroke-width="1"/>');
+    }
+
+    // 토핑 — 베이컨(사각) · 체다(원)
+    var bacon = [[186,150],[112,132],[164,214],[104,196],[204,190],[132,96]];
+    for (i = 0; i < bacon.length; i++){
+      g.push('<rect x="'+(bacon[i][0]-9)+'" y="'+(bacon[i][1]-5)+'" width="18" height="10" rx="3" '+
+             'fill="#D8865E" stroke="#BE6A43" stroke-width="1" transform="rotate('+((i*37)%70-35)+','+bacon[i][0]+','+bacon[i][1]+')"/>');
+    }
+    var ched = [[150,120],[122,172],[188,120],[96,152],[176,236],[212,158],[140,244],[86,218]];
+    for (i = 0; i < ched.length; i++){
+      g.push('<circle cx="'+ched[i][0]+'" cy="'+ched[i][1]+'" r="6.2" fill="#E8AE4A" stroke="#CE9126" stroke-width=".9"/>');
+    }
+
+    // 지시선 + 번호
+    var callouts = [
+      { p:[206,83],  y:112, t:"치즈고구마 크러스트 추가" },
+      { p:[186,150], y:152, t:"베이컨 체다" },
+      { p:[150,214], y:192, t:"토마토 소스 — 적게 요청" }
+    ];
+    for (i = 0; i < callouts.length; i++){
+      var c = callouts[i];
+      g.push('<circle cx="'+c.p[0]+'" cy="'+c.p[1]+'" r="2.6" fill="#16181B"/>');
+      g.push('<line x1="'+c.p[0]+'" y1="'+c.p[1]+'" x2="296" y2="'+c.y+'" stroke="#B9B4A3" stroke-width=".9" stroke-dasharray="3 3"/>');
+      g.push('<circle cx="310" cy="'+c.y+'" r="10" fill="none" stroke="#C6421A" stroke-width="1.2"/>');
+      g.push('<text x="310" y="'+(c.y+3.6)+'" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#C6421A">'+(i+1)+'</text>');
+      g.push('<text x="331" y="'+(c.y+4)+'" font-family="IBM Plex Sans KR, sans-serif" font-size="13" fill="#35342D">'+c.t+'</text>');
+    }
+
+    g.push('<text x="296" y="46" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2.4" fill="#8A867A">ORDER SPEC</text>');
+    g.push('<text x="296" y="76" font-family="Noto Serif KR, serif" font-weight="900" font-size="25" fill="#16181B">TMT 피자 (L)</text>');
+    g.push('<line x1="296" y1="90" x2="600" y2="90" stroke="#E0DCCF" stroke-width="1"/>');
+
+    // 치수선
+    g.push('<line x1="'+(cx-Rout)+'" y1="302" x2="'+(cx+Rout)+'" y2="302" stroke="#B9B4A3" stroke-width="1"/>');
+    g.push('<line x1="'+(cx-Rout)+'" y1="296" x2="'+(cx-Rout)+'" y2="308" stroke="#B9B4A3" stroke-width="1"/>');
+    g.push('<line x1="'+(cx+Rout)+'" y1="296" x2="'+(cx+Rout)+'" y2="308" stroke="#B9B4A3" stroke-width="1"/>');
+    g.push('<text x="'+cx+'" y="320" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.6" fill="#8A867A">LARGE</text>');
+
+    return '<svg viewBox="0 0 620 336" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="추천 피자 주문 사양 도면">'+g.join("")+'</svg>';
   };
-  r.readAsText(f);
-};
-document.getElementById('bAdd').onclick=function(){ openForm(null); };
 
-/* ============ 오버레이 ============ */
-function show(id){ document.getElementById(id).classList.add('on'); document.body.style.overflow='hidden'; }
-function close(id){ document.getElementById(id).classList.remove('on'); document.body.style.overflow=''; }
-document.querySelectorAll('[data-close]').forEach(function(b){
-  b.onclick=function(){ close(b.closest('.veil').id); };
-});
-document.querySelectorAll('.veil').forEach(function(v){
-  v.onclick=function(e){ if(e.target===v) close(v.id); };
-});
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){ document.querySelectorAll('.veil.on').forEach(function(v){close(v.id);}); }
-});
+  W2_FIG.hexagon = function(){
+    var cx = 310, cy = 154, R = 112;
+    var g = [];
+    var i, k, pts, a, r;
 
-load(); drawSubs(); drawSheet();
+    function hex(rad){
+      var p = [];
+      for (var j = 0; j < 6; j++){
+        var ang = (Math.PI / 3) * j - Math.PI / 2;
+        p.push((cx + Math.cos(ang) * rad).toFixed(1) + "," + (cy + Math.sin(ang) * rad).toFixed(1));
+      }
+      return p.join(" ");
+    }
+
+    // 격자
+    var rings = [1, 0.72, 0.44];
+    for (k = 0; k < rings.length; k++){
+      g.push('<polygon points="'+hex(R * rings[k])+'" fill="none" stroke="#E0DCCF" stroke-width="1"/>');
+    }
+    // 축
+    for (i = 0; i < 6; i++){
+      a = (Math.PI / 3) * i - Math.PI / 2;
+      g.push('<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx + Math.cos(a) * R).toFixed(1)+
+             '" y2="'+(cy + Math.sin(a) * R).toFixed(1)+'" stroke="#E7E3D6" stroke-width="1"/>');
+    }
+    // 바깥 한계
+    g.push('<polygon points="'+hex(R)+'" fill="none" stroke="#C7C2B0" stroke-width="1.3" stroke-dasharray="5 4"/>');
+    // 작은 육각형
+    r = R * 0.42;
+    g.push('<polygon points="'+hex(r)+'" fill="rgba(198,66,26,.11)" stroke="#C6421A" stroke-width="2" stroke-linejoin="round"/>');
+    for (i = 0; i < 6; i++){
+      a = (Math.PI / 3) * i - Math.PI / 2;
+      g.push('<circle cx="'+(cx + Math.cos(a) * r).toFixed(1)+'" cy="'+(cy + Math.sin(a) * r).toFixed(1)+'" r="3.2" fill="#C6421A"/>');
+    }
+
+    g.push('<text x="'+cx+'" y="'+(cy + R + 26)+'" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2.2" fill="#8A867A">SMALL HEXAGON</text>');
+
+    return '<svg viewBox="0 0 620 306" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="여섯 축이 고르게 작은 육각형">'+g.join("")+'</svg>';
+  };
+
+  W2_FIG.dream = function(){
+    var nodes = [
+      { v:0.72, t:"소방관" },
+      { v:0.90, t:"포르쉐" },
+      { v:0.64, t:"산업디자인" },
+      { v:0.34, t:"시각·제품" },
+      { v:0.18, t:"도망", hi:true },
+      { v:0.46, t:"UI·GUI" },
+      { v:0.70, t:"머니그라피" },
+      { v:0.82, t:"프로덕트" },
+      { v:0.55, t:"지금" }
+    ];
+    var x0 = 54, x1 = 566, step = (x1 - x0) / (nodes.length - 1);
+    var Y = function(v){ return 226 - v * 168; };
+    var g = [], i, pts = [];
+
+    for (i = 0; i < nodes.length; i++){
+      nodes[i].x = x0 + step * i;
+      nodes[i].y = Y(nodes[i].v);
+      pts.push(nodes[i].x.toFixed(1) + "," + nodes[i].y.toFixed(1));
+    }
+
+    // 기준선
+    g.push('<line x1="40" y1="248" x2="580" y2="248" stroke="#E0DCCF" stroke-width="1"/>');
+
+    g.push('<polyline points="'+pts.join(" ")+'" fill="none" stroke="#16181B" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>');
+    // 아직 정하지 못한 다음 구간
+    g.push('<path d="M'+nodes[8].x.toFixed(1)+','+nodes[8].y.toFixed(1)+' L596,'+Y(0.74).toFixed(1)+'" fill="none" stroke="#B9B4A3" stroke-width="2" stroke-dasharray="4 5" stroke-linecap="round"/>');
+
+    for (i = 0; i < nodes.length; i++){
+      var n = nodes[i];
+      var col = n.hi ? "#C6421A" : "#16181B";
+      g.push('<line x1="'+n.x.toFixed(1)+'" y1="'+(n.y + 9).toFixed(1)+'" x2="'+n.x.toFixed(1)+'" y2="242" stroke="#E0DCCF" stroke-width="1"/>');
+      g.push('<circle cx="'+n.x.toFixed(1)+'" cy="'+n.y.toFixed(1)+'" r="'+(n.hi ? 5.4 : 3.8)+'" fill="'+col+'"/>');
+      if (n.hi){
+        g.push('<circle cx="'+n.x.toFixed(1)+'" cy="'+n.y.toFixed(1)+'" r="10.5" fill="none" stroke="#C6421A" stroke-width="1.1" opacity=".55"/>');
+      }
+      g.push('<text x="'+n.x.toFixed(1)+'" y="264" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="'+
+             (n.hi ? "#C6421A" : "#8A867A")+'">'+n.t+'</text>');
+    }
+
+    g.push('<text x="40" y="34" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2.2" fill="#8A867A">초3 → 지금</text>');
+    g.push('<text x="'+nodes[4].x.toFixed(1)+'" y="284" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="11" fill="#C6421A">‘겁쟁이같이’</text>');
+    g.push('<text x="580" y="34" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.6" fill="#B9B4A3">아직 안 그려진 구간</text>');
+
+    return '<svg viewBox="0 0 620 296" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="초등학교 3학년부터 지금까지 꿈이 옮겨 다닌 자리">'+g.join("")+'</svg>';
+  };
+
+  W2_FIG.skyrim = function(){
+    var g = [];
+    var A = [72,138], B = [548,138];
+
+    g.push('<path d="M72,138 C 210,58 410,58 548,138" fill="none" stroke="#B9B4A3" stroke-width="1.6" stroke-dasharray="5 5" stroke-linecap="round"/>');
+    g.push('<path d="M72,138 C 148,248 206,158 268,206 C 330,254 372,124 438,172 C 486,207 512,178 548,138" fill="none" stroke="#C6421A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>');
+
+    var marks = [[148,206],[218,180],[268,206],[330,213],[372,152],[438,172],[492,190]];
+    for (var i = 0; i < marks.length; i++){
+      g.push('<circle cx="'+marks[i][0]+'" cy="'+marks[i][1]+'" r="3" fill="#C6421A" opacity=".55"/>');
+    }
+
+    g.push('<circle cx="'+A[0]+'" cy="'+A[1]+'" r="6" fill="#16181B"/>');
+    g.push('<circle cx="'+B[0]+'" cy="'+B[1]+'" r="6" fill="#16181B"/>');
+    g.push('<text x="'+(A[0]-13)+'" y="'+(A[1]+4)+'" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8A867A">시작</text>');
+    g.push('<text x="'+(B[0]+13)+'" y="'+(B[1]+4)+'" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8A867A">좋은 사람</text>');
+
+    g.push('<text x="310" y="76" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="12.5" fill="#8A867A">태어날 때부터 선한 것</text>');
+    g.push('<text x="310" y="252" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="12.5" font-weight="600" fill="#C6421A">크나큰 노력으로 극복하는 것</text>');
+
+    return '<svg viewBox="0 0 620 276" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="같은 곳에 닿는 두 갈래 길">'+g.join("")+'</svg>';
+  };
+
+  W2_FIG.planb = function(){
+    var g = [];
+
+    function box(x, y, w, h, label, sub, hi){
+      var st = hi ? "#C6421A" : "#16181B";
+      g.push('<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="11" fill="'+(hi ? "rgba(198,66,26,.06)" : "#FFFDF8")+
+             '" stroke="'+st+'" stroke-width="1.5"'+(hi ? ' stroke-dasharray="6 4"' : '')+'/>');
+      g.push('<text x="'+(x + w/2)+'" y="'+(y + (sub ? h/2 - 4 : h/2 + 5))+'" text-anchor="middle" font-family="Noto Serif KR, serif" font-weight="700" font-size="16" fill="'+st+'">'+label+'</text>');
+      if (sub){
+        g.push('<text x="'+(x + w/2)+'" y="'+(y + h/2 + 14)+'" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8A867A">'+sub+'</text>');
+      }
+    }
+
+    // 연결선
+    g.push('<path d="M214,118 C 258,118 258,64 302,64" fill="none" stroke="#16181B" stroke-width="1.6"/>');
+    g.push('<path d="M214,118 C 258,118 258,176 302,176" fill="none" stroke="#C6421A" stroke-width="1.6" stroke-dasharray="6 4"/>');
+    g.push('<path d="M440,64 C 484,64 484,118 524,118" fill="none" stroke="#16181B" stroke-width="1.6"/>');
+    g.push('<path d="M440,176 C 484,176 484,118 524,118" fill="none" stroke="#C6421A" stroke-width="1.6" stroke-dasharray="6 4"/>');
+
+    box(72, 92, 142, 52, "상황", null, false);
+    box(302, 38, 138, 52, "PLAN A", null, false);
+    box(302, 150, 138, 52, "PLAN B", "언제든", true);
+
+    g.push('<circle cx="536" cy="118" r="6" fill="#16181B"/>');
+    g.push('<text x="536" y="146" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#8A867A">실행</text>');
+    g.push('<text x="40" y="30" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2.2" fill="#8A867A">ALWAYS ONE MORE</text>');
+
+    return '<svg viewBox="0 0 620 232" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="상황에서 플랜 A와 플랜 B로 갈라지는 분기도">'+g.join("")+'</svg>';
+  };
+
+  W2_FIG.desire = function(){
+    var g = [];
+    var A = [104,238], B = [520,74];
+
+    g.push('<rect x="40" y="34" width="540" height="232" rx="16" fill="#EFEDE1" stroke="#DFDBCC" stroke-width="1"/>');
+
+    // 잔디 질감
+    var seed = 7;
+    for (var i = 0; i < 90; i++){
+      seed = (seed * 1103515245 + 12345) % 2147483648;
+      var gx = 52 + (seed / 2147483648) * 514;
+      seed = (seed * 1103515245 + 12345) % 2147483648;
+      var gy = 46 + (seed / 2147483648) * 208;
+      g.push('<line x1="'+gx.toFixed(1)+'" y1="'+gy.toFixed(1)+'" x2="'+gx.toFixed(1)+'" y2="'+(gy - 4).toFixed(1)+'" stroke="#DCD8C6" stroke-width="1"/>');
+    }
+
+    // 깔아둔 길
+    g.push('<polyline points="'+A[0]+','+A[1]+' '+B[0]+','+A[1]+' '+B[0]+','+B[1]+
+           '" fill="none" stroke="#D6D1BF" stroke-width="17" stroke-linejoin="round" stroke-linecap="round"/>');
+    g.push('<polyline points="'+A[0]+','+A[1]+' '+B[0]+','+A[1]+' '+B[0]+','+B[1]+
+           '" fill="none" stroke="#C7C2AE" stroke-width="1" stroke-dasharray="2 5" stroke-linejoin="round"/>');
+
+    // 실제로 걸어간 흔적
+    g.push('<line x1="'+A[0]+'" y1="'+A[1]+'" x2="'+B[0]+'" y2="'+B[1]+'" stroke="#E0D2B6" stroke-width="11" stroke-linecap="round"/>');
+    g.push('<line x1="'+A[0]+'" y1="'+A[1]+'" x2="'+B[0]+'" y2="'+B[1]+'" stroke="#C6421A" stroke-width="1.8" stroke-dasharray="9 7" stroke-linecap="round"/>');
+
+    // 발자국
+    for (var k = 1; k < 10; k++){
+      var f = k / 10;
+      var fx = A[0] + (B[0] - A[0]) * f, fy = A[1] + (B[1] - A[1]) * f;
+      var off = (k % 2 === 0) ? 5 : -5;
+      g.push('<circle cx="'+(fx + off).toFixed(1)+'" cy="'+(fy + off * 0.4).toFixed(1)+'" r="2.4" fill="#C6421A" opacity=".5"/>');
+    }
+
+    g.push('<circle cx="'+A[0]+'" cy="'+A[1]+'" r="7" fill="#16181B"/>');
+    g.push('<circle cx="'+B[0]+'" cy="'+B[1]+'" r="7" fill="#16181B"/>');
+    g.push('<text x="'+(A[0] - 2)+'" y="'+(A[1] + 24)+'" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E6C62">출발</text>');
+    g.push('<text x="'+(B[0] + 2)+'" y="'+(B[1] - 16)+'" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E6C62">목적지</text>');
+
+    g.push('<text x="332" y="256" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="12" fill="#8A867A">깔아둔 길</text>');
+    g.push('<text x="238" y="132" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="12" font-weight="600" fill="#C6421A">실제로 걸어간 흔적</text>');
+
+    return '<svg viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="공원에 깔아둔 길과 사람들이 실제로 걸어간 지름길">'+g.join("")+'</svg>';
+  };
+
+  var W2 = [
+    {
+      id:"food", n:"01", label:"음식",
+      color:"#E2762B", ink:"#6B2A08",
+      q:"어떤 음식을 좋아하나요?",
+      lead:"자극적인 음식들을 좋아합니다.",
+      blocks:[
+        { k:"p", t:["그중에서는 피자를 제일 많이 먹을 수 있습니다."] },
+        { k:"h2", t:"추천 피자" },
+        { k:"fig", d:"pizza", cap:"TMT 피자(L) 베이컨 체다(토마토 소스 적게 요청) + 치즈고구마크러스트 추가" }
+      ]
+    },
+    {
+      id:"work", n:"02", label:"일",
+      color:"#26324A", ink:"#9FB2CE",
+      q:"어떤 일들을 하셨어요?",
+      lead:"이것저것 다 해봤네요.",
+      blocks:[
+        { k:"rows", items:[
+          ["Kardi 다큐멘터리", "그래픽 디자인"],
+          ["CHIT GROOVE", "와인바 브랜딩, 컨설팅"],
+          ["신한은행, 한국투자증권, 한화비전, 세라젬 등", "UI · GUI"]
+        ]},
+        { k:"p", t:["작은 육각형의 기술을 가지고 있어요."] },
+        { k:"fig", d:"hexagon", cap:"어느 한 축도 비어 있지 않은, 대신 아직 작은 육각형." }
+      ]
+    },
+    {
+      id:"dream", n:"03", label:"꿈",
+      color:"#F2CF54", ink:"#6B5410",
+      q:"꿈이 무엇인가요?",
+      lead:"어렸을 때, 정확히는 초등학교 3학년까지는 소방관이 되고 싶었어요.",
+      blocks:[
+        { k:"p", t:[
+          "그런데 개인적인 사정으로 인해 할 수 없게 됐어요.",
+          "그렇게 중학생이 되고 집 앞 인테리어 가게 앞에 빨간색 포르쉐가 있더라고요. 그때 든 생각이 ‘타고 싶다!’가 아니라 ‘나도 저런 걸 만들고 싶다!’라는 생각이 들었어요.",
+          "그렇게 산업 디자이너가 되고 싶었는데, 생각보다 현실적인 문제들에 많이 부딪히더라고요. 한국에서 대학을 나와 자동차 전반적인 디자인을 맡는 사람은 많지 않다는 것도 문제고요. (머리가 비상하지도 않았고)",
+          "그렇게 시각·제품 전공으로 대학을 가니 많이 방황했죠. 무엇을 해야 하나… 하고",
+          "그래서 무신사에 가고 싶었어요. 이유는…. 멋있으니까? 옷도 좋아하고, 그리고 사실은 브랜딩 관련 업무를 하려 했다가 도망쳤어요.",
+          "저보다 더 그래픽적으로 잘할 것 같은 친구들이 있을 거라 생각했고 저는 재능이 없다고 판단했어요. ‘겁쟁이같이’"
+        ]},
+        { k:"fig", d:"dream", cap:"초등학교 3학년부터 지금까지, 꿈이 옮겨 다닌 자리. 다섯 번째 지점이 도망친 순간입니다." },
+        { k:"p", t:["그렇게 지내다 UI·GUI 회사에 입사하고 시간이 지나 머니그라피를 보는데 이재용 회계사님이 한 말이 참 깊게 남더라고요."] },
+        { k:"quote", t:"회계는 경제 세상의 이면을 이해하고 편견 없이 바라보게 해주는 안경이자 언어", cite:"이재용 회계사 — 머니그라피" },
+        { k:"p", t:[
+          "그때 직업이 도구에 불과한 건가? 하는 생각이 들었어요.",
+          "그래서 하나의 물체, 장소(회사)를 꿈으로 정하기보다는 궁극적인 목표가 필요하다 생각했고, 현재는 불투명하지만, 25년도까지는 전 국민의 반이 제가 만든 걸 알거나 사용해 봤으면 하는 꿈이 생겼죠.",
+          "그래서 프로덕트 디자이너가 되고 싶었는데, 현재는 진로 고민 중이라 꿈을 정하기는 어려운 것 같아요. 4년 전 도망친 순간을 후회하거든요.",
+          "그게 진짜 하고 싶었던 일이었던 걸까? 하고 생각해서, 현재는 꿈을 이룰 수단을 정하고 있어요."
+        ]}
+      ]
+    },
+    {
+      id:"person", n:"04", label:"어떤 사람",
+      color:"#7A2545", ink:"#E8A9BF",
+      q:"어떤 사람인가요?",
+      lead:"저는 착한 사람이 되려고 노력하고 싶은 사람이고 싶어요.",
+      blocks:[
+        { k:"p", t:["스카이림이라는 게임 아세요? 거기에 이런 대사가 있어요."] },
+        { k:"quote", t:"무엇이 더 훌륭한가? 태어날 때부터 선한 것인가, 아니면 크나큰 노력으로 자신의 악한 본성을 극복하는 것인가?",
+          cite:"What is better - to be born good, or to overcome your evil nature through great effort?  ·  The Elder Scrolls V: Skyrim" },
+        { k:"fig", d:"skyrim", cap:"같은 곳에 닿는 두 갈래. 저는 아래쪽입니다." },
+        { k:"p", t:[
+          "저는 스스로를 좋은 사람이라고 생각하지 않아요. 표정 관리도 잘 못하고, 감정적일 때가 많았거든요. 그런데 그럴 때마다 제 주위 사람들이 저를 붙잡고 충고해 줬어요.",
+          "참 인복이 많죠.",
+          "그래서 저도 그런 도움들을 받아 지금의 제가 됐으니, 받은 도움들을 누군가에게 전달하고 싶어요. 어떤 형태로든.",
+          "그렇게 살아가고 싶은 사람입니다.",
+          "그래서 지금 작은 목표는 학교로 돌아가 후배들에게 취업 정보를 알려 주고 진로 상담을 해 주는 것입니다."
+        ]}
+      ]
+    },
+    {
+      id:"serious", n:"05", label:"좋아하는 행동",
+      color:"#B9DB4B", ink:"#2F4210",
+      q:"어떤 행동을 가장 좋아하나요?",
+      lead:"진지한 걸 좋아해요.",
+      blocks:[
+        { k:"p", t:[
+          "가볍게 생각하는 것보다, 진지하게 생각하고 언제든 플랜 B를 세우는 것을 선호하죠.",
+          "다른 분들은 저에게 이렇게 말해요. “왜 그렇게 진지해, 좀 가볍게 생각해.”"
+        ]},
+        { k:"h2", t:"맞아요." },
+        { k:"fig", d:"planb", cap:"플랜 A가 있으면 플랜 B도 하나. 늘 그렇습니다." },
+        { k:"p", t:[
+          "생각이 너무 깊어서 발생하는 문제들도 많아요. 가령 걱정이 더 많아진다든지, 누군가의 말을 더 곡해하기도 하죠.",
+          "그렇지만, 진지하니까 누군가에게 제 마음이나 생각을 전할 때, 더 진실되게 보이는 면이 저는 좋은 것 같아요.",
+          "앞뒤가 다른 사람은 아니라서 누군가에게는 서툴고 너무 솔직해 보일 수 있지만, 돌이켜보니 오히려 강점일 때도 많은 것 같네요. 옳은 행동을 할 때 제 진심이 전달되니까요."
+        ]}
+      ]
+    },
+    {
+      id:"trivia", n:"06", label:"사소한 장기",
+      color:"#74CEE4", ink:"#0E4757",
+      q:"사소한 장기가 있다면?",
+      lead:"사소한 정보들을 기억한다? 넓고 얕은 지식이 있어요.",
+      blocks:[
+        { k:"p", soft:true, t:["(살면서 크게 도움이 되지는 않는 그런ㅋㅋ)"] },
+        { k:"quote", t:"공원에 최적의 길을 만드는 방법은, 먼저 길을 깔고 사람을 따라오게 하는 게 아니라 사람들이 실제로 걸어간 흔적을 길로 만드는 것이다." },
+        { k:"fig", d:"desire", cap:"깔아둔 길과, 사람들이 실제로 걸어간 흔적." },
+        { k:"quote", t:"사람은 목적지로 갈 때 최단거리를 계산하는 게 아니라, ‘일단 목적지 쪽으로 곧게 출발하자’는 식으로 움직인다." },
+        { k:"p", t:[
+          "이런 것들? 살면서 큰 도움은 안 되죠. 그렇지만 재밌잖아요? 언제나 다들 자기의 선택이 최선이라 생각하지만 모순이 생기는 그런 것들이요.",
+          "그런 것들을 기억해요."
+        ]}
+      ]
+    }
+  ];
+
+  function w2Index(id){
+    for (var i = 0; i < W2.length; i++){ if (W2[i].id === id) return i; }
+    return -1;
+  }
+
+  /* 타일 픽토그램 — data-solid 는 hover 때 채움에서 선으로 바뀌고,
+     data-line 은 원래 선이라 색만 바뀐다. */
+  var W2_TILE = {
+    food: function(){
+      return '<svg viewBox="0 0 100 100" aria-hidden="true"><path data-solid d="M50 8 L90 84 A78 78 0 0 1 10 84 Z"/></svg>';
+    },
+    work: function(){
+      return '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon data-solid points="50,6 88,28 88,72 50,94 12,72 12,28"/></svg>';
+    },
+    dream: function(){
+      return '<svg viewBox="0 0 100 100" aria-hidden="true"><polyline data-line points="8,76 30,36 48,60 68,18 92,46"/></svg>';
+    },
+    person: function(){
+      return '<svg viewBox="0 0 100 100" aria-hidden="true"><path data-line d="M8 62 C 32 12 68 12 92 62"/><path data-line d="M8 62 C 26 96 40 56 54 78 C 68 100 82 78 92 62"/></svg>';
+    },
+    serious: function(){
+      return '<svg viewBox="0 0 100 100" aria-hidden="true"><rect data-solid x="10" y="12" width="60" height="30" rx="8"/><rect data-solid x="10" y="58" width="60" height="30" rx="8"/></svg>';
+    },
+    trivia: function(){
+      return '<svg viewBox="0 0 100 100" aria-hidden="true"><polyline data-line points="10,88 88,88 88,14"/><line data-line x1="10" y1="88" x2="88" y2="14"/></svg>';
+    }
+  };
+
+  function w2Blocks(blocks){
+    var out = [];
+    for (var i = 0; i < blocks.length; i++){
+      var b = blocks[i];
+      if (b.k === "p"){
+        var ps = b.t.map(function(x){ return '<p'+(b.soft ? ' class="soft"' : '')+'>'+esc(x)+'</p>'; }).join("");
+        out.push('<div class="w2-body">'+ps+'</div>');
+      } else if (b.k === "h2"){
+        out.push('<h2 class="w2-h2">'+esc(b.t)+'</h2>');
+      } else if (b.k === "quote"){
+        out.push('<blockquote class="w2-quote"><p>'+esc(b.t)+'</p>'+
+                 (b.cite ? '<cite>'+esc(b.cite)+'</cite>' : '')+'</blockquote>');
+      } else if (b.k === "fig"){
+        out.push('<figure class="w2-fig">'+W2_FIG[b.d]()+
+                 (b.cap ? '<figcaption>'+esc(b.cap)+'</figcaption>' : '')+'</figure>');
+      } else if (b.k === "rows"){
+        var rs = b.items.map(function(r){
+          return '<div><span class="a">'+esc(r[0])+'</span><span class="b">'+esc(r[1])+'</span></div>';
+        }).join("");
+        out.push('<div class="w2-rows">'+rs+'</div>');
+      }
+    }
+    return out.join("");
+  }
+
+  /* 여섯 칸 + 가운데 한 칸. 한 번만 그리고 계속 쓴다. */
+  function w2Mosaic(){
+    var out = [];
+    for (var i = 0; i < W2.length; i++){
+      var d = W2[i];
+      out.push('<a class="w2-tile w2-t'+(i+1)+'" href="#/week2/'+d.id+'" '+
+                 'style="--bg:'+d.color+';--ink:'+d.ink+'" aria-label="'+esc(d.q)+'">'+
+                 '<span class="tname">'+esc(d.label)+'</span>'+
+                 '<span class="tnum">'+d.n+'</span>'+
+                 W2_TILE[d.id]()+
+               '</a>');
+    }
+    out.push('<div class="w2-cell">'+
+               '<button class="w2-x" id="w2X" type="button" aria-label="목록 닫기">'+
+                 '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">'+
+                 '<path d="M5 5 L19 19 M19 5 L5 19" fill="none" stroke="#F2EFE8" stroke-width="2" stroke-linecap="round"/>'+
+                 '</svg>'+
+               '</button>'+
+               '<a class="w2-home" href="#/" aria-label="선반으로 돌아가기">선반</a>'+
+             '</div>');
+    return out.join("");
+  }
+
+  function w2Rail(d){
+    return '<span class="rlab">'+esc(d.label)+'</span>'+
+           '<button class="w2-burger" id="w2Burger" type="button" aria-label="질문 목록 열기" '+
+             'style="--tile:'+d.color+'"><i></i><i></i><i></i></button>'+
+           '<span class="rfoot">6 QUESTIONS</span>';
+  }
+
+  function w2Topic(i){
+    var d = W2[i];
+    return '<section class="w2-hero" style="--bg:'+d.color+';--ink:'+d.ink+'">'+
+             '<div>'+
+               '<p class="w2-henum">'+d.n+' — '+esc(d.label)+'</p>'+
+               '<h1 class="w2-heq">'+esc(d.q)+'</h1>'+
+             '</div>'+
+           '</section>'+
+           '<div class="w2-leadwrap" id="w2LeadWrap">'+
+             '<p class="w2-lead2" id="w2Lead">'+esc(d.lead)+'</p>'+
+           '</div>'+
+           '<div class="w2-main"><div class="w2-page">'+
+             w2Blocks(d.blocks)+
+             '<p class="w2-note">답변은 직접 쓴 글이며, 오타와 띄어쓰기만 바로잡고 말투는 그대로 두었습니다.</p>'+
+           '</div></div>';
+  }
+
+  /* 리드 문장을 글자 단위로 쪼개 스크롤에 맞춰 채운다. */
+  var w2FillFn = null;
+  function w2DetachFill(){
+    if (w2FillFn){ window.removeEventListener("scroll", w2FillFn); w2FillFn = null; }
+  }
+  function w2AttachFill(){
+    var wrap = document.getElementById("w2LeadWrap");
+    var lead = document.getElementById("w2Lead");
+    if (!wrap || !lead) return;
+    var txt = lead.textContent;
+    lead.textContent = "";
+    var spans = [];
+    for (var i = 0; i < txt.length; i++){
+      var s = document.createElement("span");
+      s.textContent = txt[i];
+      lead.appendChild(s);
+      spans.push(s);
+    }
+    w2FillFn = function(){
+      var r = wrap.getBoundingClientRect();
+      var total = r.height - window.innerHeight;
+      var pr = total <= 0 ? 1 : Math.max(0, Math.min(1, -r.top / total));
+      var n = Math.round(pr * 1.25 * spans.length);
+      for (var j = 0; j < spans.length; j++){
+        var on = j < n;
+        if (spans[j].classList.contains("on") !== on) spans[j].classList.toggle("on", on);
+      }
+    };
+    window.addEventListener("scroll", w2FillFn, { passive:true });
+    w2FillFn();
+  }
+
+  var ibRail = null, ibMain = null, ibMosaic = null, w2MosaicDone = false;
+
+  function renderW2(id){
+    if (!ibRail){
+      ibRail = document.getElementById("ibRail");
+      ibMain = document.getElementById("ibMain");
+      ibMosaic = document.getElementById("ibMosaic");
+    }
+    if (!w2MosaicDone){
+      ibMosaic.innerHTML = w2Mosaic();
+      w2MosaicDone = true;
+      ibMosaic.addEventListener("click", function(e){
+        var t = e.target;
+        while (t && t !== ibMosaic){
+          if (t.classList && t.classList.contains("w2-x")){
+            document.body.classList.remove("w2-open");
+            return;
+          }
+          t = t.parentNode;
+        }
+      });
+    }
+
+    w2DetachFill();
+    var i = w2Index(id);
+
+    if (i < 0){
+      // 첫 화면 — 타일 판 자체가 목록이다
+      ibRail.innerHTML = "";
+      ibMain.innerHTML = "";
+      requestAnimationFrame(function(){ document.body.classList.add("w2-index"); });
+      return;
+    }
+
+    ibRail.innerHTML = w2Rail(W2[i]);
+    ibMain.innerHTML = w2Topic(i);
+    document.getElementById("w2Burger").addEventListener("click", function(){
+      document.body.classList.add("w2-open");
+    });
+    w2AttachFill();
+  }
+
+  /* 선반 커버 — 타일 판 축소판 */
+  function w2Cover(){
+    var x0 = 6, y0 = 6, W = 288, H = 214, gap = 3;
+    var colW = (W - 11 * gap) / 12;
+    var rowH = (H - 9 * gap) / 10;
+    function box(c1, c2, r1, r2){
+      return {
+        x: x0 + (c1 - 1) * (colW + gap),
+        y: y0 + (r1 - 1) * (rowH + gap),
+        w: (c2 - c1) * colW + (c2 - c1 - 1) * gap,
+        h: (r2 - r1) * rowH + (r2 - r1 - 1) * gap
+      };
+    }
+    /* 색을 W2 에서 읽지 않는다 — 이 함수는 선반을 그릴 때
+       불리는데, 그 시점엔 var W2 가 아직 채워지기 전이다. */
+    var cells = [
+      { b:box(1,4,1,7),   c:"#E2762B" },
+      { b:box(4,9,1,5),   c:"#26324A" },
+      { b:box(9,13,1,7),  c:"#F2CF54" },
+      { b:box(1,4,7,11),  c:"#7A2545" },
+      { b:box(4,7,5,11),  c:"#B9DB4B" },
+      { b:box(7,13,7,11), c:"#74CEE4" },
+      { b:box(7,9,5,7),   c:"#141413" }
+    ];
+    var g = ['<rect width="300" height="300" fill="#F3F1EA"/>'];
+    for (var i = 0; i < cells.length; i++){
+      var q = cells[i];
+      g.push('<rect x="'+q.b.x.toFixed(1)+'" y="'+q.b.y.toFixed(1)+
+             '" width="'+q.b.w.toFixed(1)+'" height="'+q.b.h.toFixed(1)+'" fill="'+q.c+'"/>');
+    }
+    g.push('<text x="6" y="252" font-family="Noto Serif KR, serif" font-weight="900" font-size="29" fill="#16181B">자기소개</text>');
+    g.push('<text x="6" y="274" font-family="IBM Plex Mono, monospace" font-size="9.5" letter-spacing="1.6" fill="rgba(22,24,27,.5)">WEEK 02 · 6 QUESTIONS</text>');
+    return '<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="자기소개 커버">'+g.join("")+'</svg>';
+  }
+
+
+  /* =========================================================
+     라우팅 — 한 페이지 안에서 선반 ↔ 롤러코스터 ↔ 자기소개
+     ========================================================= */
+  function showView(v, arg){
+    if (v === "ride"){
+      document.body.className = "on-ride";
+      w2DetachFill();
+      bootRide();
+      window.scrollTo(0, 0);
+      if (running){
+        uCurrent = uStart;
+        lastStage = -1;
+        stopShown = null;
+        offstage = false;
+        updateHud(stateAtU(uStart));
+        intro.style.opacity = "1";
+        hud.style.opacity = "1";
+        onResize();
+        onScroll();
+        startLoop();
+      }
+    } else if (v === "intro"){
+      document.body.className = "on-intro";
+      loopOn = false;
+      renderW2(arg);
+      window.scrollTo(0, 0);
+    } else {
+      document.body.className = "on-home";
+      loopOn = false;
+      w2DetachFill();
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function route(){
+    var h = location.hash.replace(/^#\/?/, "").replace(/\/+$/, "");
+    if (h === "week1"){ showView("ride"); return; }
+    if (h === "week2"){ showView("intro", ""); return; }
+    if (h.indexOf("week2/") === 0){ showView("intro", h.slice(6)); return; }
+    showView("home");
+  }
+
+  window.addEventListener("hashchange", route);
+
+  document.getElementById("backBtn").addEventListener("click", function(){
+    location.hash = "/";
+  });
+
+  route();
 })();
 </script>
 </body>
