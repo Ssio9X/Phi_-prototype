@@ -1099,18 +1099,23 @@
     display:block;margin-top:12px;font-weight:400;font-size:12px;letter-spacing:1.5px;
     font-family:"IBM Plex Mono",monospace;color:#6E6C62;
   }
-  .w4-clip{margin:clamp(64px,12vh,110px) 0 0;padding-top:clamp(36px,7vh,56px);border-top:1px solid #E0DCCF;}
-  .w4-clip .w3-meta{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:2px;color:#6E6C62;}
-  .w4-clip h2{
-    margin:12px 0 clamp(20px,4vh,32px);
-    font-family:"Noto Serif KR",Georgia,serif;font-weight:900;
-    font-size:clamp(24px,4.4vw,32px);line-height:1.35;color:#16181B;word-break:keep-all;
+
+  /* ========== 5주차 · 영상 ========== */
+  body.on-clip{background:#F6F5F1;}
+  body.on-clip #viewClip{display:block;}
+  #viewClip{
+    display:none;
+    min-height:100vh;
+    background:#F6F5F1;
+    color:#16181B;
+    padding:clamp(28px,6vh,64px) 16px clamp(56px,10vh,110px);
   }
-  .w4-clip video{
+  .w5-meta{display:block;margin:0 0 12px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:2px;color:#6E6C62;}
+  .w5-video{
     display:block;width:100%;aspect-ratio:16/9;background:#16181B;
     border:1px solid #E0DCCF;border-radius:4px;
   }
-  .w4-clip video:focus-visible{outline:2px solid #C6421A;outline-offset:3px;}
+  .w5-video:focus-visible{outline:2px solid #C6421A;outline-offset:3px;}
 
 </style>
 
@@ -1265,14 +1270,24 @@
       <li><button type="button" data-t="562"><span class="t">9:22</span>마지막 한마디 — 이 사람은 어떤 사람입니다?</button></li>
     </ol>
     <p class="w4-close">“칭찬을 많이 해줘야 되는 사람이다.”<small>— 김재형, 마지막 한마디</small></p>
-    <section class="w4-clip" aria-label="영상 · 남자들의 지적인 대화">
-      <span class="w3-meta">영상 · 5:00</span>
-      <h2>남자들의 지적인 대화</h2>
-      <video id="w4Video" src="week4-talk.mp4" poster="week4-talk.jpg" controls playsinline preload="none"></video>
-    </section>
   </article>
   <div class="w3-end">
     <span class="w3-meta">WEEK 04 · 끝</span>
+    <a class="backlink" href="#/">← 선반으로</a>
+  </div>
+</div>
+<div id="viewClip">
+  <div class="w3-top">
+    <a class="backlink" href="#/">← 선반으로</a>
+    <span class="w3-meta">WEEK 05</span>
+  </div>
+  <article class="w3-page">
+    <h1>남자들의 지적인 대화</h1>
+    <span class="w5-meta">영상 · 5:00</span>
+    <video class="w5-video" id="w5Video" src="week5-talk.mp4" poster="week5-talk.jpg" controls playsinline preload="none"></video>
+  </article>
+  <div class="w3-end">
+    <span class="w3-meta">WEEK 05 · 끝</span>
     <a class="backlink" href="#/">← 선반으로</a>
   </div>
 </div>
@@ -2201,7 +2216,13 @@
       '<span class="cover">' + w4Cover() + '</span>' +
     '</a>'
   );
-  for (var wk = 5; wk <= 10; wk++){
+  slots.push(
+    '<a class="slot filled" href="#/week5" aria-label="5주차 · 남자들의 지적인 대화 열기">' +
+      '<span class="glow"></span>' +
+      '<span class="cover">' + w5Cover() + '</span>' +
+    '</a>'
+  );
+  for (var wk = 6; wk <= 10; wk++){
     var nn = wk < 10 ? "0" + wk : String(wk);
     slots.push(
       '<div class="slot empty" aria-label="' + wk + '주차 · 비어 있음">' +
@@ -2767,6 +2788,19 @@
     w2AttachFill();
   }
 
+  /* 선반 커버 — 영상 한 편 (포스터 위에 재생 표시) */
+  function w5Cover(){
+    var g = ['<rect width="300" height="300" fill="#16181B"/>'];
+    g.push('<text x="24" y="36" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="2.6" fill="rgba(255,253,248,.55)">WEEK 05</text>');
+    g.push('<image href="week5-talk.jpg" x="24" y="58" width="252" height="141.75" preserveAspectRatio="xMidYMid slice"/>');
+    g.push('<circle cx="150" cy="128.9" r="20" fill="rgba(22,24,27,.6)"/>');
+    g.push('<path d="M144 118.9 L160 128.9 L144 138.9 Z" fill="#FFFDF8"/>');
+    g.push('<text x="24" y="238" font-family="Noto Serif KR, serif" font-weight="900" font-size="22" fill="#FFFDF8">남자들의</text>');
+    g.push('<text x="24" y="266" font-family="Noto Serif KR, serif" font-weight="900" font-size="22" fill="#FFFDF8">지적인 대화</text>');
+    g.push('<text x="276" y="266" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.6" fill="rgba(255,253,248,.55)">5:00</text>');
+    return '<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="5주차 영상 커버">'+g.join("")+'</svg>';
+  }
+
   /* 선반 커버 — 녹음 한 편 */
   function w4Cover(){
     var g = ['<rect width="300" height="300" fill="#16181B"/>'];
@@ -2837,7 +2871,7 @@
      ========================================================= */
   function showView(v, arg){
     if (v !== "talk" && w4Audio) w4Audio.pause();
-    if (v !== "talk" && w4Video) w4Video.pause();
+    if (v !== "clip" && w5Video) w5Video.pause();
     if (v === "ride"){
       document.body.className = "on-ride";
       w2DetachFill();
@@ -2865,6 +2899,11 @@
       loopOn = false;
       w2DetachFill();
       window.scrollTo(0, 0);
+    } else if (v === "clip"){
+      document.body.className = "on-clip";
+      loopOn = false;
+      w2DetachFill();
+      window.scrollTo(0, 0);
     } else if (v === "diary"){
       document.body.className = "on-diary";
       loopOn = false;
@@ -2885,6 +2924,7 @@
     if (h.indexOf("week2/") === 0){ showView("intro", h.slice(6)); return; }
     if (h === "week3"){ showView("diary"); return; }
     if (h === "week4"){ showView("talk"); return; }
+    if (h === "week5"){ showView("clip"); return; }
     showView("home");
   }
 
@@ -2892,7 +2932,7 @@
      4주차 — 인터뷰 플레이어 (파형 = 진행 바, 챕터 = 바로가기)
      ========================================================= */
   var w4Audio = document.getElementById("w4Audio");
-  var w4Video = document.getElementById("w4Video");
+  var w5Video = document.getElementById("w5Video");
   var w4Play = document.getElementById("w4Play");
   var w4Wave = document.getElementById("w4Wave");
   var w4Cur = document.getElementById("w4Cur");
@@ -2941,8 +2981,6 @@
 
   w4Icon();
   w4Play.addEventListener("click", function(){ w4Audio.paused ? w4Audio.play() : w4Audio.pause(); });
-  w4Audio.addEventListener("play", function(){ w4Video.pause(); });
-  w4Video.addEventListener("play", function(){ w4Audio.pause(); });
   w4Audio.addEventListener("play", w4Icon);
   w4Audio.addEventListener("pause", w4Icon);
   w4Audio.addEventListener("ended", w4Icon);
