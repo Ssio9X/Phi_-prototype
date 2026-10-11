@@ -1099,6 +1099,18 @@
     display:block;margin-top:12px;font-weight:400;font-size:12px;letter-spacing:1.5px;
     font-family:"IBM Plex Mono",monospace;color:#6E6C62;
   }
+  .w4-clip{margin:clamp(64px,12vh,110px) 0 0;padding-top:clamp(36px,7vh,56px);border-top:1px solid #E0DCCF;}
+  .w4-clip .w3-meta{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:2px;color:#6E6C62;}
+  .w4-clip h2{
+    margin:12px 0 clamp(20px,4vh,32px);
+    font-family:"Noto Serif KR",Georgia,serif;font-weight:900;
+    font-size:clamp(24px,4.4vw,32px);line-height:1.35;color:#16181B;word-break:keep-all;
+  }
+  .w4-clip video{
+    display:block;width:100%;aspect-ratio:16/9;background:#16181B;
+    border:1px solid #E0DCCF;border-radius:4px;
+  }
+  .w4-clip video:focus-visible{outline:2px solid #C6421A;outline-offset:3px;}
 
 </style>
 
@@ -1253,6 +1265,11 @@
       <li><button type="button" data-t="562"><span class="t">9:22</span>마지막 한마디 — 이 사람은 어떤 사람입니다?</button></li>
     </ol>
     <p class="w4-close">“칭찬을 많이 해줘야 되는 사람이다.”<small>— 김재형, 마지막 한마디</small></p>
+    <section class="w4-clip" aria-label="영상 · 남자들의 지적인 대화">
+      <span class="w3-meta">영상 · 5:00</span>
+      <h2>남자들의 지적인 대화</h2>
+      <video id="w4Video" src="week4-talk.mp4" poster="week4-talk.jpg" controls playsinline preload="none"></video>
+    </section>
   </article>
   <div class="w3-end">
     <span class="w3-meta">WEEK 04 · 끝</span>
@@ -2820,6 +2837,7 @@
      ========================================================= */
   function showView(v, arg){
     if (v !== "talk" && w4Audio) w4Audio.pause();
+    if (v !== "talk" && w4Video) w4Video.pause();
     if (v === "ride"){
       document.body.className = "on-ride";
       w2DetachFill();
@@ -2874,6 +2892,7 @@
      4주차 — 인터뷰 플레이어 (파형 = 진행 바, 챕터 = 바로가기)
      ========================================================= */
   var w4Audio = document.getElementById("w4Audio");
+  var w4Video = document.getElementById("w4Video");
   var w4Play = document.getElementById("w4Play");
   var w4Wave = document.getElementById("w4Wave");
   var w4Cur = document.getElementById("w4Cur");
@@ -2922,6 +2941,8 @@
 
   w4Icon();
   w4Play.addEventListener("click", function(){ w4Audio.paused ? w4Audio.play() : w4Audio.pause(); });
+  w4Audio.addEventListener("play", function(){ w4Video.pause(); });
+  w4Video.addEventListener("play", function(){ w4Audio.pause(); });
   w4Audio.addEventListener("play", w4Icon);
   w4Audio.addEventListener("pause", w4Icon);
   w4Audio.addEventListener("ended", w4Icon);
