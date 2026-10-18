@@ -10,6 +10,24 @@
   body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}
   img{max-width:100%}
   [hidden]:not([hidden=until-found]){display:none!important}
+  /* ========== 6주차 · 사진 ========== */
+  body.on-photo{background:#F6F5F1;}
+  body.on-photo #viewPhoto{display:block;}
+  #viewPhoto{
+    display:none;
+    min-height:100vh;
+    background:#F6F5F1;
+    color:#16181B;
+    padding:clamp(28px,6vh,64px) 16px clamp(56px,10vh,110px);
+  }
+  .w6-grid{
+    max-width:60rem;margin:clamp(28px,5vh,48px) auto 0;
+    columns:2;column-gap:14px;
+  }
+  .w6-shot{margin:0 0 14px;break-inside:avoid;}
+  .w6-shot img{display:block;width:100%;height:auto;background:#E0DCCF;border-radius:4px;}
+  @media (max-width:640px){ .w6-grid{columns:1;} }
+
 </style>
 </head>
 <body>
@@ -1291,6 +1309,32 @@
     <a class="backlink" href="#/">← 선반으로</a>
   </div>
 </div>
+<div id="viewPhoto">
+  <div class="w3-top">
+    <a class="backlink" href="#/">← 선반으로</a>
+    <span class="w3-meta">WEEK 06</span>
+  </div>
+  <article class="w3-page">
+    <h1>일상의 나, 일할 때의 나</h1>
+    <span class="w5-meta">사진 · 10장</span>
+  </article>
+  <div class="w6-grid">
+      <figure class="w6-shot"><img src="week6-01.webp" width="506" height="900" loading="lazy" decoding="async" alt="6주차 사진 1"></figure>
+      <figure class="w6-shot"><img src="week6-02.webp" width="1350" height="900" loading="lazy" decoding="async" alt="6주차 사진 2"></figure>
+      <figure class="w6-shot"><img src="week6-03.webp" width="1600" height="900" loading="lazy" decoding="async" alt="6주차 사진 3"></figure>
+      <figure class="w6-shot"><img src="week6-04.webp" width="1600" height="900" loading="lazy" decoding="async" alt="6주차 사진 4"></figure>
+      <figure class="w6-shot"><img src="week6-05.webp" width="506" height="900" loading="lazy" decoding="async" alt="6주차 사진 5"></figure>
+      <figure class="w6-shot"><img src="week6-06.webp" width="675" height="900" loading="lazy" decoding="async" alt="6주차 사진 6"></figure>
+      <figure class="w6-shot"><img src="week6-07.webp" width="647" height="900" loading="lazy" decoding="async" alt="6주차 사진 7"></figure>
+      <figure class="w6-shot"><img src="week6-08.webp" width="675" height="900" loading="lazy" decoding="async" alt="6주차 사진 8"></figure>
+      <figure class="w6-shot"><img src="week6-09.webp" width="900" height="900" loading="lazy" decoding="async" alt="6주차 사진 9"></figure>
+      <figure class="w6-shot"><img src="week6-10.webp" width="675" height="900" loading="lazy" decoding="async" alt="6주차 사진 10"></figure>
+  </div>
+  <div class="w3-end">
+    <span class="w3-meta">WEEK 06 · 끝</span>
+    <a class="backlink" href="#/">← 선반으로</a>
+  </div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
 (function(){
@@ -2222,7 +2266,13 @@
       '<span class="cover">' + w5Cover() + '</span>' +
     '</a>'
   );
-  for (var wk = 6; wk <= 10; wk++){
+  slots.push(
+    '<a class="slot filled" href="#/week6" aria-label="6주차 · 일상의 나, 일할 때의 나 열기">' +
+      '<span class="glow"></span>' +
+      '<span class="cover">' + w6Cover() + '</span>' +
+    '</a>'
+  );
+  for (var wk = 7; wk <= 10; wk++){
     var nn = wk < 10 ? "0" + wk : String(wk);
     slots.push(
       '<div class="slot empty" aria-label="' + wk + '주차 · 비어 있음">' +
@@ -2788,6 +2838,20 @@
     w2AttachFill();
   }
 
+  /* 선반 커버 — 사진 네 장 */
+  function w6Cover(){
+    var g = ['<rect width="300" height="300" fill="#16181B"/>'];
+    g.push('<text x="24" y="36" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="2.6" fill="rgba(255,253,248,.55)">WEEK 06</text>');
+    var pics = ["week6-02.webp", "week6-03.webp", "week6-07.webp", "week6-10.webp"];
+    for (var i = 0; i < pics.length; i++){
+      g.push('<image href="'+pics[i]+'" x="'+(24 + (i%2)*128)+'" y="'+(52 + Math.floor(i/2)*76)+'" width="124" height="72" preserveAspectRatio="xMidYMid slice"/>');
+    }
+    g.push('<text x="24" y="238" font-family="Noto Serif KR, serif" font-weight="900" font-size="22" fill="#FFFDF8">일상의 나,</text>');
+    g.push('<text x="24" y="266" font-family="Noto Serif KR, serif" font-weight="900" font-size="22" fill="#FFFDF8">일할 때의 나</text>');
+    g.push('<text x="276" y="266" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.6" fill="rgba(255,253,248,.55)">10장</text>');
+    return '<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="6주차 사진 커버">'+g.join("")+'</svg>';
+  }
+
   /* 선반 커버 — 영상 한 편 (포스터 위에 재생 표시) */
   function w5Cover(){
     var g = ['<rect width="300" height="300" fill="#16181B"/>'];
@@ -2904,6 +2968,11 @@
       loopOn = false;
       w2DetachFill();
       window.scrollTo(0, 0);
+    } else if (v === "photo"){
+      document.body.className = "on-photo";
+      loopOn = false;
+      w2DetachFill();
+      window.scrollTo(0, 0);
     } else if (v === "diary"){
       document.body.className = "on-diary";
       loopOn = false;
@@ -2925,6 +2994,7 @@
     if (h === "week3"){ showView("diary"); return; }
     if (h === "week4"){ showView("talk"); return; }
     if (h === "week5"){ showView("clip"); return; }
+    if (h === "week6"){ showView("photo"); return; }
     showView("home");
   }
 
