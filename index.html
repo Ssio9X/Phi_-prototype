@@ -2377,7 +2377,13 @@
       '<span class="cover">' + w7Cover() + '</span>' +
     '</a>'
   );
-  for (var wk = 8; wk <= 10; wk++){
+  slots.push(
+    '<a class="slot filled" href="week8/" aria-label="8주차 · 아름다움의 기준 열기">' +
+      '<span class="glow"></span>' +
+      '<span class="cover">' + w8Cover() + '</span>' +
+    '</a>'
+  );
+  for (var wk = 9; wk <= 10; wk++){
     var nn = wk < 10 ? "0" + wk : String(wk);
     slots.push(
       '<div class="slot empty" aria-label="' + wk + '주차 · 비어 있음">' +
@@ -2963,6 +2969,32 @@
     return '<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="7주차 이타카 커버">'+g.join("")+'</svg>';
   }
 
+  /* 선반 커버 — 지구 위 다섯 장소 (8주차 페이지는 week8/ 에 따로 빌드된 앱) */
+  function w8Cover(){
+    var W8_PLACES = [[127.0478,37.6536],[120.6402,24.163],[128.6014,35.8714],[127.0446,37.5246],[129.0106,35.0975]];
+    var cx = 150, cy = 138, r = 84, lon0 = 125 * Math.PI/180, lat0 = 31 * Math.PI/180;
+    function proj(lon, lat){
+      // 실제 간격은 몇 도뿐이라 커버에서는 중심(125°E, 31°N)으로부터의 차이를 3배로 벌려 그린다
+      var l = (125 + (lon-125)*3)*Math.PI/180, p = (31 + (lat-31)*3)*Math.PI/180;
+      return [cx + r*Math.cos(p)*Math.sin(l-lon0),
+              cy - r*(Math.cos(lat0)*Math.sin(p) - Math.sin(lat0)*Math.cos(p)*Math.cos(l-lon0))];
+    }
+    var g = ['<rect width="300" height="300" fill="#16181B"/>'];
+    g.push('<text x="24" y="36" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="2.6" fill="rgba(255,253,248,.55)">WEEK 08</text>');
+    g.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(255,253,248,.32)" stroke-width="1"/>');
+    for (var k = 1; k <= 2; k++) g.push('<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+(r*k/3).toFixed(1)+'" ry="'+r+'" fill="none" stroke="rgba(255,253,248,.12)"/>');
+    g.push('<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+r+'" ry="'+(r*.34).toFixed(1)+'" fill="none" stroke="rgba(255,253,248,.12)"/>');
+    var pts = W8_PLACES.map(function(q){ return proj(q[0], q[1]); });
+    var d = 'M' + pts.map(function(q){ return q[0].toFixed(1)+' '+q[1].toFixed(1); }).join(' L');
+    g.push('<path d="'+d+'" fill="none" stroke="#C6421A" stroke-width="1" stroke-dasharray="3 3"/>');
+    pts.forEach(function(q, i){
+      g.push('<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="3.2" fill="#FFFDF8"/>');
+    });
+    g.push('<text x="24" y="266" font-family="Noto Serif KR, serif" font-weight="900" font-size="26" fill="#FFFDF8">아름다움의 기준</text>');
+    g.push('<text x="276" y="266" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.6" fill="rgba(255,253,248,.55)">5명 · 5곳</text>');
+    return '<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="8주차 아름다움의 기준 커버">'+g.join("")+'</svg>';
+  }
+
   /* 선반 커버 — 사진 네 장 */
   function w6Cover(){
     var g = ['<rect width="300" height="300" fill="#16181B"/>'];
@@ -3127,6 +3159,7 @@
     if (h === "week5"){ showView("clip"); return; }
     if (h === "week6"){ showView("photo"); return; }
     if (h === "week7"){ showView("voyage"); return; }
+    if (h === "week8"){ location.replace("week8/"); return; }
     showView("home");
   }
 
