@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>단톡방 포지션 테스트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme:light;
+    --bg:#EEF0F3; --ink:#16181D; --sub:#6B7080; --line:#D9DCE2;
+    --me:#FF5A36; --me-ink:#fff; --friend:#fff; --accent:#FF5A36; --accent2:#2F6BFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%}
+  body{font-family:'Noto Sans KR',system-ui,sans-serif;background:#DCDFE5;color:var(--ink);display:flex;justify-content:center}
+  .app{width:100%;max-width:440px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative}
+  header{position:sticky;top:0;z-index:5;background:rgba(238,240,243,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 16px 10px}
+  .hrow{display:flex;align-items:center;justify-content:space-between}
+  .room{font-weight:700;font-size:16px}
+  .room small{color:var(--sub);font-weight:500;margin-left:4px}
+  .step{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
+  .bar{height:3px;background:var(--line);border-radius:2px;margin-top:10px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .35s ease}
+
+  /* intro */
+  .intro{flex:1;display:flex;flex-direction:column;justify-content:center;padding:40px 28px 48px}
+  .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--accent);border:1.5px solid var(--accent);border-radius:99px;padding:4px 10px;margin-bottom:18px;align-self:flex-start}
+  .intro h1{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:46px;line-height:1.08;letter-spacing:-.01em}
+  .intro h1 em{font-style:normal;color:var(--accent)}
+  .intro p{margin-top:16px;color:var(--sub);line-height:1.65;font-size:15px}
+  .preview{margin:28px 0 30px;display:flex;flex-direction:column;gap:6px}
+  .btn{appearance:none;border:0;cursor:pointer;font:inherit;font-weight:700;font-size:16px;border-radius:14px;padding:16px 18px;background:var(--ink);color:#fff;transition:transform .08s}
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+  .meta{margin-top:14px;font-size:12px;color:var(--sub);text-align:center}
+
+  /* chat */
+  .chat{flex:1;padding:16px 14px 8px;display:flex;flex-direction:column;gap:8px}
+  .msg{display:flex;gap:8px;align-items:flex-end;animation:pop .25s ease both}
+  .msg .av{width:34px;height:34px;border-radius:12px;flex:none;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff}
+  .msg .col{display:flex;flex-direction:column;gap:3px;max-width:76%}
+  .msg .name{font-size:12px;color:var(--sub);margin-left:2px}
+  .bub{background:var(--friend);padding:10px 13px;border-radius:4px 16px 16px 16px;line-height:1.5;font-size:15px;box-shadow:0 1px 0 rgba(0,0,0,.04);word-break:keep-all}
+  .msg.me{justify-content:flex-end}
+  .msg.me .bub{background:var(--me);color:var(--me-ink);border-radius:16px 4px 16px 16px}
+  .msg.me .col{align-items:flex-end}
+  .sys{align-self:center;font-size:12px;color:var(--sub);background:rgba(0,0,0,.05);padding:5px 12px;border-radius:99px;animation:pop .25s ease both}
+  .photo{display:block;width:150px;height:110px;border-radius:10px;filter:blur(1.1px)}
+  .file{display:flex;align-items:center;gap:10px;background:#fff;border-radius:4px 16px 16px 16px;padding:10px 12px;font-size:13.5px;word-break:break-all}
+  .file i{flex:none;width:30px;height:36px;border-radius:4px;background:#1F7A4A;color:#fff;font-style:normal;font-size:10px;font-weight:900;display:grid;place-items:center}
+  .photo-wrap{border-radius:4px 16px 16px 16px;overflow:hidden;background:#fff;padding:6px}
+  .q{align-self:center;text-align:center;word-break:keep-all;padding:0 8px;font-weight:700;font-size:15px;margin:10px 0 2px;animation:pop .25s ease both}
+  .typing{display:flex;gap:4px;padding:12px 14px}
+  .typing span{width:7px;height:7px;border-radius:50%;background:#B9BDC7;animation:blink 1s infinite}
+  .typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+  @keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .dock{position:sticky;bottom:0;background:linear-gradient(to top,var(--bg) 82%,rgba(238,240,243,0));padding:14px 14px 18px;display:flex;flex-direction:column;gap:8px}
+  .opt{appearance:none;font:inherit;text-align:left;cursor:pointer;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;font-size:14.5px;line-height:1.45;color:var(--ink);transition:border-color .12s,transform .08s;animation:pop .25s ease both;word-break:keep-all}
+  .opt:hover{border-color:var(--ink)}
+  .opt:active{transform:scale(.985)}
+  .opt{display:flex;align-items:flex-start;gap:9px}
+  .kind{flex:none;font-size:11px;font-weight:900;line-height:1;padding:5px 7px;border-radius:6px;background:var(--bg);color:var(--accent);margin-top:1px}
+  .msg.me.act .bub{background:#fff;color:var(--ink);border:1.5px dashed var(--accent);display:flex;gap:8px;align-items:flex-start}
+  .msg.me.act .kind{background:#FFE9E3}
+
+  /* result */
+  .result{flex:1;padding:22px 18px 40px;animation:pop .35s ease both}
+  .card{background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 10px 30px rgba(22,24,29,.08)}
+  .card-top{padding:26px 22px 22px;color:#fff;position:relative}
+  .card-top .kicker{font-size:12px;font-weight:700;opacity:.85;letter-spacing:.03em}
+  .card-top .no{font-family:'Black Han Sans',sans-serif;font-size:15px;margin:22px 0 6px;opacity:.75;letter-spacing:.04em}
+  .card-top h2{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:36px;line-height:1.1}
+  .card-top .pos{margin-top:8px;font-weight:700;font-size:14px;opacity:.95}
+  .card-body{padding:20px 22px 24px}
+  .desc{font-size:15px;line-height:1.7;word-break:keep-all}
+  .h3{font-size:12px;font-weight:900;color:var(--sub);letter-spacing:.06em;margin:22px 0 10px}
+  .habits{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .habits li{background:var(--bg);border-radius:10px;padding:9px 12px;font-size:14px}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .pair div{border-radius:14px;padding:12px;font-size:13px;line-height:1.5;border:1.5px solid var(--line)}
+  .pair strong{display:block;word-break:keep-all;font-size:14px;margin:2px 0}
+  .pair .lbl{font-size:11px;font-weight:900;color:var(--sub)}
+  .dist{display:flex;flex-direction:column;gap:8px}
+  .drow{display:grid;grid-template-columns:92px 1fr 30px;align-items:center;gap:8px;font-size:13px}
+  .dtrack{height:10px;background:var(--bg);border-radius:6px;overflow:hidden}
+  .dtrack i{display:block;height:100%;border-radius:6px;width:0;transition:width .7s cubic-bezier(.2,.8,.2,1)}
+  .drow span:last-child{text-align:right;color:var(--sub);font-variant-numeric:tabular-nums}
+  .actions{display:flex;flex-direction:column;gap:8px;margin-top:18px}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:13px;padding:10px 16px;border-radius:99px;opacity:0;transition:.25s;pointer-events:none;z-index:20}
+  .toast.on{opacity:1;transform:translateX(-50%)}
+  .copybox{color:var(--ink);background:#fff;display:none;margin-top:8px;width:100%;font:inherit;font-size:13px;padding:10px;border-radius:10px;border:1.5px solid var(--line);resize:none}
+  .others{margin-top:26px}
+  .others h4{font-size:13px;font-weight:900;margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font:inherit;font-size:13px;color:var(--ink);border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:6px 11px;cursor:pointer}
+  .chip:hover{border-color:var(--ink)}
+  details.log{margin-top:28px;font-size:13px;color:var(--sub)}
+  details.log summary{cursor:pointer;font-weight:700}
+  details.log ul{margin:10px 0 0 18px;line-height:1.8}
+  .write{appearance:none;font:inherit;cursor:pointer;background:transparent;border:1.5px dashed #B9BDC7;border-radius:14px;padding:12px 14px;font-size:14.5px;color:var(--sub);text-align:left;animation:pop .25s ease both}
+  .write:hover{border-color:var(--ink);color:var(--ink)}
+  .inrow{display:flex;gap:8px;animation:pop .2s ease both}
+  .inrow input::placeholder{color:#9AA0AC}
+  .inrow input{color:var(--ink);caret-color:var(--accent);flex:1;min-width:0;font:inherit;font-size:15px;padding:13px 14px;border-radius:14px;border:1.5px solid var(--ink);background:#fff;outline:none}
+  .inrow button{appearance:none;border:0;font:inherit;font-weight:700;cursor:pointer;border-radius:14px;padding:0 16px;background:var(--accent);color:#fff}
+  .inrow button:disabled{background:#C9CCD3;cursor:default}
+  .back{appearance:none;border:0;background:none;font:inherit;font-size:13px;color:var(--sub);cursor:pointer;align-self:flex-start;padding:2px 4px}
+  .tagq{font-size:13px;font-weight:700;color:var(--sub);margin:2px 2px 0}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tags .chip{animation:pop .2s ease both}
+  .mine{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .mine li{display:flex;flex-direction:column;gap:2px;background:var(--bg);border-radius:10px;padding:9px 12px;font-size:14px}
+  .mine li small{color:var(--sub);font-size:12px}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="hrow">
+      <div class="room">우리 단톡방 <small>4</small></div>
+      <div class="step" id="step">v1.0</div>
+    </div>
+    <div class="bar"><i id="bar"></i></div>
+  </header>
+
+  <!-- INTRO -->
+  <section class="intro" id="intro">
+    <span class="tag">단톡방 포지션 테스트</span>
+    <h1>우리 단톡방에서<br>나는 <em>어떤 포지션</em>일까?</h1>
+    <div class="preview">
+      <div class="msg"><div class="av" style="background:#2F6BFF">민</div><div class="col"><span class="name">민수</span><div class="bub">나 진짜 큰일남</div><div class="bub">자동문이 나만 인식 못 함. 세 번 왔다 갔다 함</div></div></div>
+      <div class="msg me"><div class="col"><div class="bub">자동문한테도 존재감 없는 거 실화냐</div></div></div>
+    </div>
+    <button class="btn" id="startBtn">단톡방 입장하기</button>
+    <div class="meta">약 1분 · 질문 8개</div>
+  </section>
+
+  <!-- CHAT -->
+  <section class="chat hidden" id="chat"></section>
+  <div class="dock hidden" id="dock"></div>
+
+  <!-- RESULT -->
+  <section class="result hidden" id="result"></section>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* 배포 후 주소를 넣으면 '결과 공유' 문구에 링크가 같이 붙어요. 예: https://아이디.github.io/chatroom-test/ */
+const SHARE_URL = "https://ssio9x.github.io/Phi_-prototype/week9/";
+
+const FRIENDS = {
+  민수:{c:"#2F6BFF",i:"민"},
+  지은:{c:"#16A37B",i:"지"},
+  태오:{c:"#9B5CF6",i:"태"}
+};
+
+const TYPES = {
+  A:{name:"아무 말 폭격기", pos:"천연 엉뚱", color:"#FF5A36",
+     desc:"본인은 진지하게 물어본 건데 단톡방이 터진다. 대화가 세 번째 메시지쯤 흘러가면 갑자기 \"근데 펭귄은 무릎 있음?\"을 보내는 사람. 보내 놓고 왜 다들 웃는지 아직도 모른다.",
+     habits:["새벽 2시에 \"근데 갑자기 궁금한 거\"로 시작한다","답장이 없으면 다음 질문을 보낸다","한 번 터진 말로 1년 동안 놀림받는다"],
+     best:"C", worst:"A", worstWhy:"둘 다 던지기만 해서 대화가 우주로 간다"},
+  B:{name:"빌드업 설계자", pos:"계산 개그", color:"#2F6BFF",
+     desc:"드립 하나를 위해 메모장에 초안이 있다. 짤은 미리 만들어 두고, 반응이 없으면 \"(정적)\"까지 직접 친다. 터지면 겉으로는 무심한 척, 속으로는 혼자 하이파이브.",
+     habits:["메모장에 '써먹을 것' 폴더가 있다","짤 하나 만드는 데 평균 40초","반응 없으면 \"(정적)\"을 직접 친다"],
+     best:"E", worst:"B", worstWhy:"서로 더 웃기려다 단톡방이 오디션장이 된다"},
+  C:{name:"팩트 정리반장", pos:"받아치기", color:"#16181D",
+     desc:"단톡방의 브레이크이자 회의 진행자. 산으로 가는 대화를 한 줄로 끊어서 오히려 웃음을 완성한다. 이 사람이 \"읽은 거 다 보임\"을 치는 순간, 갑자기 다들 답장을 시작한다.",
+     habits:["\"그래서 결론이 뭔데\"","투표에 마감 시간까지 단다","받아치기 한 줄로 그날 ㅋ를 제일 많이 받는다"],
+     best:"A", worst:"C", worstWhy:"둘이 만나면 단톡방이 회의록이 된다"},
+  D:{name:"판 키우는 맞장구 장인", pos:"맞장구", color:"#9B5CF6",
+     desc:"누가 \"나 넘어짐\"이라고 하면 \"나도 회전문에서 한 바퀴 더 돎\"으로 받는다. 드립 하나를 3절까지 끌고 가서, 점심 약속을 1박 2일 여행으로 만들어 버리는 사람.",
+     habits:["\"콜!\"이 날짜보다 먼저 나간다","남의 드립을 3절까지 이어 간다","경험담 재고가 떨어지지 않는다"],
+     best:"B", worst:"D", worstWhy:"끝나지 않는 드립 릴레이에 아무도 잠을 못 잔다"},
+  E:{name:"리액션 VIP석", pos:"관객", color:"#16A37B",
+     desc:"직접 웃기진 않지만 제일 먼저 \"ㅋㅋㅋㅋㅋㅋㅋㅋ\"를 친다. 이 사람의 ㅋ 개수가 그날 드립의 성적표다. 사실 이 방이 굴러가는 건 이 사람 덕분이다.",
+     habits:["ㅋ 자판이 제일 먼저 닳는다","지난 대화를 정주행하며 혼자 웃는다","이모티콘 하나로 대화를 마무리한다"],
+     best:"B", worst:"E", worstWhy:"둘만 남으면 숫자 1만 줄어드는 독서실이 된다"}
+};
+const ORDER = ["A","B","C","D","E"];
+
+const QS = [
+  { scene:[{f:"지은", photo:true},{f:"지은", t:"보정 안 함 ㄹㅇ"},{sys:"3초 뒤 · 지은님이 사진을 삭제했습니다"}],
+    q:"지은이가 '보정 안 함'이라며 올린 셀카를 3초 만에 지웠다",
+    o:[{k:"답장",t:"근데 방금 그 사진 뒤에 있던 화분 이름 뭐야?",type:"A"},
+       {k:"짤",t:"지워지기 전에 캡처한 사진에 '보정 안 함(진짜)' 자막을 달아 보낸다",type:"B"},
+       {k:"답장",t:"보정 안 했는데 왜 지움",type:"C"},
+       {k:"답장",t:"나도 어제 올렸다 지운 사진 있음. 다 같이 다시 올리자",type:"D"},
+       {k:"이모티콘",t:"배 잡고 웃는 이모티콘을 보낸다",type:"E"}]},
+  { scene:[{f:"민수", t:"나 진짜 큰일남"},{f:"민수", t:"합정역 7번 출구 계단에서 넘어졌는데 앞에 있던 아저씨가 나는 안 일으켜 주고 폰만 주워 줌"}],
+    q:"이번 달에만 네 번째 '나 진짜 큰일남'이다",
+    o:[{k:"답장",t:"근데 합정역 7번 출구 앞에 붕어빵 아직 팔아?",type:"A"},
+       {k:"짤",t:"'[속보] 시민, 사람보다 폰 먼저 구조' 뉴스 자막 짤을 만들어 보낸다",type:"B"},
+       {k:"답장",t:"이번 달 큰일 네 번째다. 큰일 정기구독 했냐",type:"C"},
+       {k:"답장",t:"나도 저번에 회전문에서 한 바퀴 더 돎. 우리 동지다",type:"D"},
+       {k:"공감",t:"메시지에 '슬퍼요' 공감을 누른다",type:"E"}]},
+  { scene:[{sys:"마지막 메시지 · 2일 전"},{f:"태오", t:"다들 살아있냐"}],
+    q:"이틀 만에 올라온 메시지가 '다들 살아있냐'다",
+    o:[{k:"답장",t:"나 어제 꿈에서 너네랑 같이 이사했음",type:"A"},
+       {k:"투표",t:"'오늘 저녁: 1.국밥 2.국밥(특) 3.순대국밥' 투표를 올린다",type:"B"},
+       {k:"답장",t:"살아 있음. 용건만 간단히",type:"C"},
+       {k:"답장",t:"생존자 명단: 태오, 나. 나머지 손",type:"D"},
+       {k:"읽기만",t:"읽기만 한다. 숫자 1이 하나 줄어든다",type:"E"}]},
+  { scene:[{f:"민수", t:"점심 같이 시켜 먹자"},{f:"태오", t:"짜장이 근본임"},{f:"지은", t:"짬뽕 안 시키면 나 이 방 나감"}],
+    q:"점심 메뉴로 단톡방이 둘로 갈라졌다",
+    o:[{k:"답장",t:"근데 중국집 단무지는 왜 노래?",type:"A"},
+       {k:"짤",t:"'짜장 vs 짬뽕 끝장 토론' 포스터를 만들어 올린다 (사회: 태오)",type:"B"},
+       {k:"답장",t:"짬짜면 있음. 회의 끝.",type:"C"},
+       {k:"답장",t:"난 볶음밥 대표로 출마함. 공약은 짬뽕 국물 무한 리필",type:"D"},
+       {k:"이모티콘",t:"팝콘 먹으며 구경하는 이모티콘을 보낸다",type:"E"}]},
+  { scene:[{me:"얘들아 나 머리 자름"},{sys:"읽음 3 · 답장 0 · 10분 경과"}],
+    q:"10분째 아무도 내 머리에 관심이 없다",
+    o:[{k:"답장",t:"근데 고양이는 왜 상자 좋아함?",type:"A"},
+       {k:"답장",t:"(정적) (정적) 아 다들 너무 놀라서 말을 잃었구나",type:"B"},
+       {k:"답장",t:"읽은 거 다 보임. 1 없어졌음",type:"C"},
+       {k:"사진",t:"머리 자른 사진을 각도별로 5장 더 올린다",type:"D"},
+       {k:"행동",t:"메시지를 지울까 말까, 엄지가 15초째 떠 있다",type:"E"}]},
+  { scene:[{f:"민수", t:"편의점 알바 3년 하면 생기는 병 알려 줌"},{f:"민수", t:"다른 편의점에서 계산하는데 내가 먼저 \"봉투 필요하세요?\" 함"}],
+    q:"민수가 직업병 썰을 풀었다",
+    o:[{k:"답장",t:"근데 편의점 봉투는 왜 꼭 두 장씩 붙어서 나와?",type:"A"},
+       {k:"저장",t:"몰래 메모장 '써먹을 것' 폴더에 저장한다",type:"B"},
+       {k:"답장",t:"퇴근을 해도 퇴근을 못 했네",type:"C"},
+       {k:"답장",t:"그래서 점원이 봉투 달래? 얼마 받았어? 영수증은?",type:"D"},
+       {k:"답장",t:"ㅋㅋㅋㅋㅋㅋㅋㅋ 아 배 아파",type:"E"}]},
+  { scene:[{f:"태오", t:"다음 주 모임 날짜 정하자. 엑셀 올림"},{f:"태오", file:"모임_일정_최종_진짜최종(2).xlsx"}],
+    q:"태오가 모임 날짜를 엑셀로 정리해 왔다",
+    o:[{k:"답장",t:"엑셀이 안 열려. 이거 메모장으로 열면 돼?",type:"A"},
+       {k:"짤",t:"엑셀 표를 캡처해서 '태오 컴퍼니 사내 공지' 양식으로 다시 올린다",type:"B"},
+       {k:"답장",t:"목요일 7시 홍대. 이의 있으면 오늘 자정까지",type:"C"},
+       {k:"답장",t:"콜!! 언제든 무조건 감 (아직 날짜 안 정함)",type:"D"},
+       {k:"행동",t:"\"정해지면 알려줘~\" 하고 알림을 끈다",type:"E"}]},
+  { scene:[{sys:"마지막 질문"}],
+    q:"친구들이 단톡방 내 이름 옆에 한 줄 소개를 달아 준다면?",
+    o:[{k:"소개",t:"얘는 왜 저러는지 모르겠는데 웃김",type:"A"},
+       {k:"소개",t:"얘 드립은 다 사전 리허설 거침",type:"B"},
+       {k:"소개",t:"얘 없으면 이 방 3일 만에 망함",type:"C"},
+       {k:"소개",t:"얘랑 있으면 점심 약속이 1박 2일 됨",type:"D"},
+       {k:"소개",t:"ㅋ 자판 제일 먼저 닳는 사람",type:"E"}]}
+];
+
+const $ = id => document.getElementById(id);
+let idx = 0, score = {}, history = [], mine = [];
+
+function reset(){ idx=0; history=[]; mine=[]; ORDER.forEach(k=>score[k]=0); }
+
+function bubbleFriend(name, html){
+  const f = FRIENDS[name];
+  const d = document.createElement("div");
+  d.className="msg";
+  d.innerHTML = `<div class="av" style="background:${f.c}">${f.i}</div><div class="col"><span class="name">${name}</span>${html}</div>`;
+  return d;
+}
+function bubbleMe(text){
+  const d=document.createElement("div"); d.className="msg me";
+  d.innerHTML=`<div class="col"><div class="bub"></div></div>`;
+  d.querySelector(".bub").textContent=text; return d;
+}
+function actionMe(kind,text){
+  const d=document.createElement("div"); d.className="msg me act";
+  d.innerHTML=`<div class="col"><div class="bub"><span class="kind"></span><span></span></div></div>`;
+  d.querySelector(".kind").textContent=kind; d.querySelector(".bub span:last-child").textContent=text; return d;
+}
+function sys(text,cls="sys"){ const d=document.createElement("div"); d.className=cls; d.textContent=text; return d; }
+function scrollDown(){ window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}); }
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function showQuestion(){
+  const chat=$("chat"), dock=$("dock");
+  const Q=QS[idx];
+  $("step").textContent=`${idx+1} / ${QS.length}`;
+  $("bar").style.width=`${(idx/QS.length)*100}%`;
+  dock.innerHTML="";
+  for(const s of Q.scene){
+    if(s.sys) chat.appendChild(sys(s.sys));
+    else if(s.me) chat.appendChild(bubbleMe(s.me));
+    else if(s.file){ const el=bubbleFriend(s.f,`<div class="file"><i>XLSX</i><span></span></div>`); el.querySelector(".file span").textContent=s.file; chat.appendChild(el); }
+    else if(s.photo) chat.appendChild(bubbleFriend(s.f,`<div class="photo-wrap"><svg class="photo" viewBox="0 0 150 110" aria-label="흔들린 셀카, 뒤에 화분"><defs><linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EFE6DA"/><stop offset="1" stop-color="#D9CBB8"/></linearGradient></defs><rect width="150" height="110" fill="url(#wall)"/><rect x="12" y="10" width="44" height="34" rx="2" fill="#F8F4EC" stroke="#CDBFAA"/><g class="plant"><path d="M112 70 h26 l-4 26 h-18z" fill="#C8693F"/><ellipse cx="118" cy="58" rx="7" ry="15" fill="#4F8A4A" transform="rotate(-25 118 58)"/><ellipse cx="132" cy="55" rx="7" ry="16" fill="#3F7A3D" transform="rotate(20 132 55)"/><ellipse cx="125" cy="48" rx="6" ry="17" fill="#5C9A55"/></g><g class="me" opacity=".35" transform="translate(5 1)"><circle cx="70" cy="52" r="20" fill="#3B3F4A"/><path d="M34 110 q0-34 36-34 q36 0 36 34z" fill="#3B3F4A"/></g><g class="me"><circle cx="70" cy="52" r="20" fill="#3B3F4A"/><path d="M34 110 q0-34 36-34 q36 0 36 34z" fill="#3B3F4A"/></g></svg></div>`));
+    else { const el=bubbleFriend(s.f,`<div class="bub"></div>`); el.querySelector(".bub").textContent=s.t; chat.appendChild(el); }
+    scrollDown(); await wait(380);
+  }
+  chat.appendChild(sys(`${Q.q}. 이때 나는?`,"q"));
+  Q.order = shuffle(Q.o.map((_,i)=>i));
+  rebuildOptions(true);
+  scrollDown();
+}
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+const SELF_TAGS=[
+  ["그냥 떠오른 대로 던짐","A"],
+  ["노리고 던짐","B"],
+  ["정리하거나 받아침","C"],
+  ["올라타서 판을 키움","D"],
+  ["웃어 주거나 리액션만","E"]
+];
+
+function openWrite(){
+  const dock=$("dock"); dock.innerHTML="";
+  const back=document.createElement("button"); back.className="back"; back.textContent="← 선택지로 돌아가기";
+  const row=document.createElement("form"); row.className="inrow";
+  row.innerHTML=`<input type="text" maxlength="60" placeholder="단톡방에 보낼 답장을 써 보세요" autocomplete="off"><button type="submit" disabled>전송</button>`;
+  const inp=row.querySelector("input"), send=row.querySelector("button");
+  inp.oninput=()=>{ send.disabled=!inp.value.trim(); };
+  row.onsubmit=e=>{ e.preventDefault(); const v=inp.value.trim(); if(v) sendSelf(v); };
+  back.onclick=()=>{ dock.innerHTML=""; rebuildOptions(); };
+  dock.append(back,row);
+  inp.focus(); scrollDown();
+}
+
+function rebuildOptions(animate=false){
+  const dock=$("dock"), Q=QS[idx];
+  Q.order.forEach((oi,i)=>{
+    const o=Q.o[oi];
+    const b=document.createElement("button"); b.className="opt";
+    if(animate) b.style.animationDelay=`${i*50}ms`;
+    const k=document.createElement("span"); k.className="kind"; k.textContent=o.k;
+    const t=document.createElement("span"); t.textContent=o.t;
+    b.append(k,t);
+    b.onclick=()=>answer(o);
+    dock.appendChild(b);
+  });
+  const w=document.createElement("button"); w.className="write";
+  if(animate) w.style.animationDelay=`${Q.o.length*50}ms`;
+  w.textContent="+ 내가 직접 답장하기";
+  w.onclick=()=>openWrite(); dock.appendChild(w);
+}
+
+function sendSelf(text){
+  const dock=$("dock"); dock.innerHTML="";
+  $("chat").appendChild(bubbleMe(text)); scrollDown();
+  const q=document.createElement("div"); q.className="tagq"; q.textContent="방금 내 답장은 어떤 쪽에 가까워요?";
+  const box=document.createElement("div"); box.className="tags";
+  SELF_TAGS.forEach(([label,type],i)=>{
+    const c=document.createElement("button"); c.className="chip"; c.textContent=label; c.style.animationDelay=`${i*40}ms`;
+    c.onclick=()=>{ mine.push({q:QS[idx].q,t:text}); answer({k:"답장",t:text,type},true); };
+    box.appendChild(c);
+  });
+  dock.append(q,box); scrollDown();
+}
+
+async function answer(o,already=false){
+  const dock=$("dock"); dock.innerHTML="";
+  score[o.type]++; history.push(o.type);
+  if(!already){
+    if(o.k==="답장"||o.k==="소개") $("chat").appendChild(bubbleMe(o.t));
+    else $("chat").appendChild(actionMe(o.k,o.t));
+    scrollDown();
+  }
+  idx++;
+  await wait(450);
+  if(idx<QS.length) showQuestion(); else finish();
+}
+
+async function finish(){
+  $("bar").style.width="100%"; $("step").textContent="분석 중";
+  const t=bubbleFriend("민수",`<div class="bub typing"><span></span><span></span><span></span></div>`);
+  $("chat").appendChild(t); scrollDown();
+  await wait(1300);
+  const max=Math.max(...ORDER.map(k=>score[k]));
+  const tied=ORDER.filter(k=>score[k]===max);
+  let win=tied[0];
+  for(let i=history.length-1;i>=0;i--){ if(tied.includes(history[i])){ win=history[i]; break; } }
+  renderResult(win);
+}
+
+function renderResult(k, fromChip=false){
+  const T=TYPES[k];
+  $("intro").classList.add("hidden"); $("chat").classList.add("hidden"); $("dock").classList.add("hidden");
+  const r=$("result"); r.classList.remove("hidden");
+  $("step").textContent= fromChip ? "다른 포지션" : "결과";
+  const best=TYPES[T.best], worst=TYPES[T.worst];
+  const total=Object.values(score).reduce((a,b)=>a+b,0);
+  r.innerHTML=`
+    <div class="card">
+      <div class="card-top" style="background:${T.color}">
+        <div class="kicker">${fromChip?"이런 포지션도 있어요":"우리 단톡방에서 나는"}</div>
+        <div class="no">No.0${ORDER.indexOf(k)+1}</div>
+        <h2>${T.name}</h2>
+        <div class="pos">포지션 · ${T.pos}</div>
+      </div>
+      <div class="card-body">
+        <p class="desc">${T.desc}</p>
+        <div class="h3">단톡방 습관</div>
+        <ul class="habits">${T.habits.map(h=>`<li>${h}</li>`).join("")}</ul>
+        <div class="h3">콤비 궁합</div>
+        <div class="pair">
+          <div><span class="lbl">찰떡 콤비</span><strong>${best.name}</strong>${best.pos}</div>
+          <div><span class="lbl">위험한 조합</span><strong>${worst.name}</strong>${T.worstWhy}</div>
+        </div>
+        ${(!fromChip && mine.length)?`<div class="h3">내가 직접 쓴 답장</div><ul class="mine">${mine.map(m=>`<li><small>${esc(m.q)}</small>${esc(m.t)}</li>`).join("")}</ul>`:""}
+        ${(!fromChip && total>0)?`<div class="h3">나의 포지션 비율</div><div class="dist" id="dist">${ORDER.map(o=>`
+          <div class="drow"><span>${TYPES[o].pos}</span><div class="dtrack"><i data-w="${Math.round(score[o]/total*100)}" style="background:${TYPES[o].color}"></i></div><span>${Math.round(score[o]/total*100)}%</span></div>`).join("")}</div>`:""}
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="shareBtn">결과 복사해서 단톡방에 보내기</button>
+      <textarea class="copybox" id="copybox" rows="3" readonly></textarea>
+      <button class="btn ghost" id="againBtn">다시 하기</button>
+    </div>
+    <div class="others">
+      <h4>다른 포지션 구경하기</h4>
+      <div class="chips">${ORDER.filter(o=>o!==k).map(o=>`<button class="chip" data-k="${o}">${TYPES[o].name}</button>`).join("")}</div>
+    </div>
+    <details class="log">
+      <summary>버전 로그</summary>
+      <ul>
+        <li>v0.1 질문 8개와 포지션 5개 설계</li>
+        <li>v0.2 단톡방 채팅 형식으로 질문 진행</li>
+        <li>v0.3 결과 카드, 콤비 궁합, 포지션 비율</li>
+        <li>v1.0 결과 복사 공유, 다른 포지션 구경하기, 배포</li>
+        <li>v1.0.1 일본어 개그 용어를 우리말로 교체</li>
+        <li>v1.1 선택지 대신 직접 답장 쓰기, 결과에 내 답장 모아 보기</li>
+        <li>v1.2 현실 고증 개그로 상황, 선택지, 결과 문구 전면 수정</li>
+        <li>v1.3 이모지 제거, 셀카 사진을 화분이 보이는 그림으로 교체</li>
+        <li>v1.4 상황과 선택지의 맥락 전체 점검, 어색한 문장 수정</li>
+        <li>v1.5 질문마다 다섯 포지션 모두 선택 가능, 답장 형태 다양화(짤, 투표, 공감, 이모티콘, 사진 등), 선택지 순서 섞기</li>
+      </ul>
+    </details>`;
+  window.scrollTo({top:0});
+  requestAnimationFrame(()=>setTimeout(()=>document.querySelectorAll(".dtrack i").forEach(i=>i.style.width=i.dataset.w+"%"),60));
+  $("againBtn").onclick=start;
+  r.querySelectorAll(".chip").forEach(c=>c.onclick=()=>renderResult(c.dataset.k,true));
+  $("shareBtn").onclick=async()=>{
+    const text=`우리 단톡방에서 나는 ${T.name}(${T.pos})래ㅋㅋ\n너는 어떤 포지션일까? 해봐${SHARE_URL?"\n"+SHARE_URL:""}`;
+    try{ await navigator.clipboard.writeText(text); toast("복사했어요! 단톡방에 붙여넣기 하세요"); }
+    catch(e){ const box=$("copybox"); box.style.display="block"; box.value=text; box.focus(); box.select(); toast("문구를 길게 눌러 복사하세요"); }
+  };
+}
+
+function esc(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"),2000); }
+
+function start(){
+  reset();
+  $("intro").classList.add("hidden"); $("result").classList.add("hidden");
+  const chat=$("chat"); chat.innerHTML=""; chat.classList.remove("hidden");
+  $("dock").classList.remove("hidden");
+  chat.appendChild(sys("민수님, 지은님, 태오님과 대화를 시작합니다"));
+  window.scrollTo({top:0});
+  showQuestion();
+}
+$("startBtn").onclick=start;
+</script>
+</body>
+</html>

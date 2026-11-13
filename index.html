@@ -2383,7 +2383,13 @@
       '<span class="cover">' + w8Cover() + '</span>' +
     '</a>'
   );
-  for (var wk = 9; wk <= 10; wk++){
+  slots.push(
+    '<a class="slot filled" href="week9/" aria-label="9주차 · 단톡방 포지션 테스트 열기">' +
+      '<span class="glow"></span>' +
+      '<span class="cover">' + w9Cover() + '</span>' +
+    '</a>'
+  );
+  for (var wk = 10; wk <= 10; wk++){
     var nn = wk < 10 ? "0" + wk : String(wk);
     slots.push(
       '<div class="slot empty" aria-label="' + wk + '주차 · 비어 있음">' +
@@ -2969,6 +2975,21 @@
     return '<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="7주차 이타카 커버">'+g.join("")+'</svg>';
   }
 
+  /* 선반 커버 — 단톡방 말풍선 (9주차 페이지는 week9/ 에 있는 한 장짜리 앱) */
+  function w9Cover(){
+    var g = ['<rect width="300" height="300" fill="#EEF0F3"/>'];
+    g.push('<text x="24" y="36" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="2.6" fill="rgba(22,24,29,.5)">WEEK 09</text>');
+    var b = [[0,62,"나 진짜 큰일남",112],[0,98,"자동문이 나만 인식 못 함",170],[1,140,"자동문한테도 존재감 없는 거 실화냐",216],[0,182,"ㅋㅋㅋㅋㅋㅋㅋ",104]];
+    b.forEach(function(m){
+      var me = m[0] === 1, w = m[3], x = me ? 276 - w : 24, y = m[1];
+      g.push('<rect x="'+x+'" y="'+y+'" width="'+w+'" height="28" rx="12" fill="'+(me ? "#FF5A36" : "#FFFFFF")+'"/>');
+      g.push('<text x="'+(x+12)+'" y="'+(y+18.5)+'" font-family="Noto Sans KR, sans-serif" font-size="11.5" fill="'+(me ? "#FFFFFF" : "#16181D")+'">'+m[2]+'</text>');
+    });
+    g.push('<text x="24" y="266" font-family="Noto Serif KR, serif" font-weight="900" font-size="25" fill="#16181D">단톡방 포지션</text>');
+    g.push('<text x="276" y="266" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.6" fill="rgba(22,24,29,.5)">5유형 · 8질문</text>');
+    return '<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="9주차 단톡방 포지션 테스트 커버">'+g.join("")+'</svg>';
+  }
+
   /* 선반 커버 — 지구 위 다섯 장소 (8주차 페이지는 week8/ 에 따로 빌드된 앱) */
   function w8Cover(){
     var W8_PLACES = [[127.0478,37.6536],[120.6402,24.163],[128.6014,35.8714],[127.0446,37.5246],[129.0106,35.0975]];
@@ -3160,6 +3181,7 @@
     if (h === "week6"){ showView("photo"); return; }
     if (h === "week7"){ showView("voyage"); return; }
     if (h === "week8"){ location.replace("week8/"); return; }
+    if (h === "week9"){ location.replace("week9/"); return; }
     showView("home");
   }
 
